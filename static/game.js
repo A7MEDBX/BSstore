@@ -6,7 +6,74 @@ function getQueryParam(name) {
     return url.searchParams.get(name);
 }
 
+// --- HEADER LOGIN STATE LOGIC (COOKIE SUPPORT) ---
+function getToken() {
+    // Try localStorage first
+    let token = localStorage.getItem('jwt_token');
+    if (token) return token;
+    // Fallback: try cookies
+    const match = document.cookie.match(/(?:^|; )jwt_token=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // --- HEADER LOGIN STATE LOGIC ---
+    const token = getToken();
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const userMenu = document.getElementById('headerUserMenu');
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userDropdown = document.getElementById('userDropdown');
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+    const signOutBtn = document.getElementById('signOutBtn');
+
+    function showUserMenu(user) {
+        loginBtn.style.display = 'none';
+        registerBtn.style.display = 'none';
+        userMenu.style.display = '';
+        userName.textContent = user.username;
+        userAvatar.textContent = user.username ? user.username[0].toUpperCase() : 'U';
+    }
+    function showLoginRegister() {
+        loginBtn.style.display = '';
+        registerBtn.style.display = '';
+        userMenu.style.display = 'none';
+    }
+    // Dropdown logic
+    if (userMenuBtn && userDropdown) {
+        userMenuBtn.onclick = function(e) {
+            e.stopPropagation();
+            userDropdown.style.display = userDropdown.style.display === 'block' ? 'none' : 'block';
+        };
+        document.body.addEventListener('click', function() {
+            userDropdown.style.display = 'none';
+        });
+    }
+    // Sign out logic
+    if (signOutBtn) {
+        signOutBtn.onclick = function() {
+            localStorage.removeItem('jwt_token');
+            showLoginRegister();
+            window.location.reload();
+        };
+    }
+    // Check login state
+    if (token) {
+        fetch(`${BASE_URL}/api/me`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(user => {
+            showUserMenu(user);
+        })
+        .catch(() => {
+            showLoginRegister();
+        });
+    } else {
+        showLoginRegister();
+    }
+
     const gameId = getQueryParam('id');
     if (!gameId) return;
     fetch(`${BASE_URL}/api/games/${gameId}`)
