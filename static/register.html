@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+    <link rel="stylesheet" href="register.css">
+    <link rel="stylesheet" href="register_epic.css">
+</head>
+<body class="register-bg">
+    <div class="register-modal">
+        <div class="register-logo"><img src="images/epic-logo.svg" alt="Epic Games" style="width:56px;height:56px;"></div>
+        <div class="register-title">Create Account</div>
+        <form id="registerForm">
+            <label for="country">Country</label>
+            <select id="country" required>
+                <option value="">Select Country</option>
+                <option value="Egypt">Egypt</option>
+                <option value="USA">USA</option>
+                <option value="UK">UK</option>
+                <option value="Germany">Germany</option>
+                <option value="France">France</option>
+                <!-- Add more countries as needed -->
+            </select>
+            <label for="registerEmail">Email Address</label>
+            <input type="email" id="registerEmail" placeholder="Email Address" required autocomplete="email">
+            <div style="display:flex;gap:10px;">
+                <div style="flex:1;">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" placeholder="First Name" required autocomplete="given-name">
+                </div>
+                <div style="flex:1;">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" placeholder="Last Name" required autocomplete="family-name">
+                </div>
+            </div>
+            <label for="registerUsername">Display Name</label>
+            <input type="text" id="registerUsername" placeholder="Display Name" required autocomplete="username">
+            <label for="registerPassword">Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="registerPassword" placeholder="Password" required autocomplete="new-password">
+                <button type="button" id="togglePassword" class="password-eye-btn" tabindex="-1">
+                    <svg id="eyeIcon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c7d5e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+            <div style="margin:10px 0;">
+                <label><input type="checkbox" id="newsOptIn"> Send me news, surveys and special offers from Epic Games</label>
+            </div>
+            <div style="margin-bottom:10px;">
+                <label><input type="checkbox" id="terms" required> I have read and agree to the <a href="#" target="_blank">Terms of Service</a> and the <a href="#" target="_blank">Epic Games Store End User License Agreement</a></label>
+            </div>
+            <button type="submit" class="register-continue-btn" id="registerBtn" disabled>Continue</button>
+        </form>
+        <div id="registerError" class="otp-error"></div>
+        <div id="registerSuccess" class="otp-success"></div>
+        <div class="register-footer">
+            Already have an account? <a href="login.html">Sign in</a>
+        </div>
+        <div style="text-align:center;margin-top:10px;">
+            <a href="#" style="color:#1ba9ff;">Privacy Policy</a>
+        </div>
+    </div>
+    <script src="register.js"></script>
+</body>
+</html>

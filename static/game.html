@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-left">
+            <span class="logo">YourStore</span>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Games</a></li>
+                    <li><a href="#">Help</a></li>
+                    <li><a href="#">Store</a></li>
+                    <li><a href="#">Plus</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="header-right">
+            <a href="login.html" id="loginBtn" class="header-login-btn">Login</a>
+            <button id="registerBtn">Register</button>
+            <div class="header-user-menu" id="headerUserMenu" style="display: none;">
+                <button class="user-menu-btn" id="userMenuBtn">
+                    <span class="user-avatar" id="userAvatar">A</span>
+                    <span class="user-name" id="userName"></span>
+                    <svg class="user-menu-arrow" width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="M7 10l5 5 5-5z"/></svg>
+                </button>
+                <div class="user-dropdown" id="userDropdown" style="display: none;">
+                    <ul>
+                        <li><a href="#">My Achievements</a></li>
+                        <li><a href="#">Epic Rewards</a></li>
+                        <li><a href="#">Epic Wallet</a></li>
+                        <li><a href="#">Coupons</a></li>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Redeem Code</a></li>
+                        <li><a href="#">Wishlist</a></li>
+                        <li><a href="#" id="signOutBtn">Sign Out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="game-details-container">
+            <div class="game-details-main">
+                <div class="game-details-media">
+                    <div class="game-media-carousel">
+                        <div class="game-media-main" id="gameMediaMain"></div>
+                        <div class="game-media-thumbs" id="gameMediaThumbs"></div>
+                    </div>
+                    <div class="game-type-row">
+                        <span class="game-type-icon" id="gameTypeIcon">🎮</span>
+                        <span class="game-type-label" id="gameTypeLabel"></span>
+                    </div>
+             
+                    <div id="gameDetailsDesc" class="game-details-desc"></div>
+                </div>
+                <div class="game-details-info">
+                    <img id="gameDetailsLogo" class="game-details-logo" src="" alt="Game Logo" style="display:none;">
+                    <div class="game-details-age" id="gameDetailsAge" style="display:none;">
+                        <img id="gameDetailsAgeImg" src="" alt="Age Rating">
+                        <span class="game-details-age-text" id="gameDetailsAgeText"></span>
+                    </div>
+                    <span class="game-details-badge" id="gameDetailsBadge" style="display:none;"></span>
+                    <div class="game-details-price" id="gameDetailsPrice"></div>
+                    <button id="buyNowBtn" class="game-details-main-btn">Buy Now</button>
+                    <button id="addToCartBtn" class="game-details-sub-btn">Add To Cart</button>
+                    <button id="addToWishlistBtn" class="game-details-sub-btn">Add to Wishlist</button>
+                    <div class="game-details-info-list" id="gameDetailsInfoList"></div>
+                </div>
+            </div>
+            <!-- Add more sections for achievements, editions, DLC, etc. as needed -->
+        </section>
+        <section id="gameExtraSection" style="display:none; margin-top:32px;">
+            <h2 id="gameExtraTitle"></h2>
+            <div id="gameExtraContent"></div>
+        </section>
+    </main>
+    <footer>
+        <div class="footer-links">
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+            <a href="#">Terms</a>
+            <a href="#">Privacy</a>
+        </div>
+        <div class="footer-bottom">&copy; 2025 YourStore. All rights reserved.</div>
+    </footer>
+    <script src="game.js"></script>
+    <script>
+    // Show extra section if data is present (achievements, editions, DLC, etc.)
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.gameExtra && window.gameExtra.title && window.gameExtra.content) {
+            document.getElementById('gameExtraSection').style.display = '';
+            document.getElementById('gameExtraTitle').textContent = window.gameExtra.title;
+            document.getElementById('gameExtraContent').innerHTML = window.gameExtra.content;
+        }
+    });
+    </script>
+</body>
+</html>

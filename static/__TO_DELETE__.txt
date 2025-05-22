@@ -1,0 +1,10 @@
+otp_modal.html
+otp_modal.js
+checkresetpass.html
+checkresetpass.js
+verify.html
+verify.js
+forgotpassword.html
+forgotpassword.js
+
+swagger.json

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Store Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="main-header">
+        <div class="header-left">
+            <span class="logo">YourStore</span>
+            <nav>
+                <ul>
+                    <li><a href="#">Games</a></li>
+                    <li><a href="#">Help</a></li>
+                    <li><a href="#">Store</a></li>
+                    <li><a href="#">Plus</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="header-right">
+            <a href="login.html" id="loginBtn" class="header-login-btn">Login</a>
+            <button id="registerBtn">Register</button>
+            <div class="header-user-menu" id="headerUserMenu" style="display: none;">
+                <button class="user-menu-btn" id="userMenuBtn">
+                    <span class="user-avatar" id="userAvatar">A</span>
+                    <span class="user-name" id="userName"></span>
+                    <svg class="user-menu-arrow" width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="M7 10l5 5 5-5z"/></svg>
+                </button>
+                <div class="user-dropdown" id="userDropdown" style="display: none;">
+                    <ul>
+                        <li><a href="#">My Achievements</a></li>
+                        <li><a href="#">Epic Rewards</a></li>
+                        <li><a href="#">Epic Wallet</a></li>
+                        <li><a href="#">Coupons</a></li>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Redeem Code</a></li>
+                        <li><a href="#">Wishlist</a></li>
+                        <li><a href="#" id="signOutBtn">Sign Out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="navbar">
+        <div class="navbar-left">
+            <!-- ...logo, links, etc... -->
+        </div>
+      
+    </nav>
+
+    <main>
+        <!-- Hero Banner -->
+        <section class="hero-banner">
+            <img class="hero-banner-bg" src="images/games/default.jpg" alt="Featured Game Background">
+            <div class="hero-content">
+                <h2>Featured Game/Event Title</h2>
+                <p>Short description or event details go here.</p>
+                <button id="heroReadMoreBtn">Read more</button>
+            </div>
+            <div class="hero-slider">
+                <!-- Placeholder for slider thumbnails -->
+                <div class="slider-thumb"></div>
+                <div class="slider-thumb"></div>
+                <div class="slider-thumb"></div>
+            </div>
+        </section>
+        <!-- Modal for Game Description -->
+        <div id="gameDescModal">
+            <div class="modal-content">
+                <div class="modal-title">Game Description</div>
+                <div class="modal-desc" id="gameDescText"></div>
+                <button class="modal-ok-btn" id="gameDescOkBtn">OK</button>
+            </div>
+        </div>
+
+        <!-- Sale Section -->
+        <section class="sale-section">
+            <h3>Legendary Sale</h3>
+            <div class="sale-cards">
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+                <div class="sale-card"></div>
+            </div>
+        </section>
+
+        <!-- Adventures Section -->
+        <section class="adventures-section">
+            <h3>Legendary adventures await</h3>
+            <div class="adventure-cards">
+                <div class="adventure-card"></div>
+                <div class="adventure-card"></div>
+                <div class="adventure-card"></div>
+            </div>
+        </section>
+
+        <!-- Universes Section -->
+        <section class="universes-section">
+            <h3>Visit Universes</h3>
+            <div class="universe-cards">
+                <div class="universe-card"></div>
+                <div class="universe-card"></div>
+                <div class="universe-card"></div>
+            </div>
+        </section>
+
+        <!-- Play for Free Section -->
+        <section class="free-section">
+            <h3>Play for free</h3>
+            <div class="free-cards">
+                <div class="free-card"></div>
+                <div class="free-card"></div>
+                <div class="free-card"></div>
+            </div>
+        </section>
+
+        <!-- Latest News Section -->
+        <section class="news-section">
+            <h3>Latest News</h3>
+            <div class="news-cards">
+                <div class="news-card"></div>
+                <div class="news-card"></div>
+                <div class="news-card"></div>
+                <div class="news-card"></div>
+            </div>
+        </section>
+
+        <!-- Connect Section -->
+        <section class="connect-section">
+            <div class="connect-content">
+                <h3>Connect</h3>
+                <p>All your games, friends, and benefits in one place.</p>
+                <button>Get App</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#">Privacy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">Legal Info</a>
+            <a href="#">Help</a>
+            <a href="#">Contact</a>
+        </div>
+        <div class="footer-social">
+            <!-- Social icons placeholders -->
+            <span>Socials</span>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2025 YourStore. All rights reserved.</span>
+        </div>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>

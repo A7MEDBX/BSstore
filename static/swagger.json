@@ -1,0 +1,451 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Steam Clone API",
+    "version": "1.0.0",
+    "description": "OpenAPI documentation for your Steam/Epic Games-like backend."
+  },
+  "servers": [
+    {"url": "http://localhost:5000"}
+  ],
+  "paths": {
+    "/api/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string"},
+                  "email": {"type": "string"},
+                  "password": {"type": "string"}
+                },
+                "required": ["username", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "User registered, OTP sent"},
+          "400": {"description": "Validation error"}
+        }
+      }
+    },
+    "/api/verify_otp": {
+      "post": {
+        "summary": "Verify email OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {"type": "string"},
+                  "otp": {"type": "string"}
+                },
+                "required": ["email", "otp"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Email verified successfully"},
+          "400": {"description": "Invalid or expired OTP"}
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "summary": "Login user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {"type": "string"},
+                  "password": {"type": "string"}
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Login successful, returns JWT"},
+          "401": {"description": "Invalid credentials"}
+        }
+      }
+    },
+    "/api/logout": {
+      "post": {
+        "summary": "Logout user (JWT blacklist)",
+        "responses": {
+          "200": {"description": "Logged out successfully"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "summary": "Get current user profile (JWT required)",
+        "responses": {
+          "200": {"description": "User profile"},
+          "401": {"description": "Unauthorized"}
+        }
+      }
+    },
+    "/api/password_reset/request": {
+      "post": {
+        "summary": "Request password reset (send OTP)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {"type": "string"}
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "OTP sent if email exists"},
+          "400": {"description": "Validation error"}
+        }
+      }
+    },
+    "/api/password_reset/confirm": {
+      "post": {
+        "summary": "Confirm password reset with OTP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {"type": "string"},
+                  "otp": {"type": "string"},
+                  "new_password": {"type": "string"}
+                },
+                "required": ["email", "otp", "new_password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {"description": "Password reset successful"},
+          "400": {"description": "Invalid or expired OTP"}
+        }
+      }
+    },
+    "/api/games": {
+      "get": {
+        "summary": "List all approved games",
+        "responses": {
+          "200": {"description": "List of games"}
+        }
+      },
+      "post": {
+        "summary": "Add a new game (company only)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {"type": "string"},
+                  "description": {"type": "string"},
+                  "developer": {"type": "string"},
+                  "release_date": {"type": "string"},
+                  "image_url": {"type": "string"},
+                  "download_url": {"type": "string"}
+                },
+                "required": ["title"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Game created"},
+          "400": {"description": "Validation error"}
+        }
+      }
+    },
+    "/api/games/{game_id}": {
+      "get": {
+        "summary": "Get game details",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Game details"}, "404": {"description": "Not found"}}
+      },
+      "put": {
+        "summary": "Update game (company/admin only)",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object"}}}},
+        "responses": {"200": {"description": "Game updated"}, "400": {"description": "Validation error"}}
+      },
+      "delete": {
+        "summary": "Delete game (admin only)",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Game deleted"}, "404": {"description": "Not found"}}
+      }
+    },
+    "/api/games/{game_id}/approve": {
+      "post": {
+        "summary": "Approve game (admin only)",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Game approved"}, "404": {"description": "Not found"}}
+      }
+    },
+    "/api/games/{game_id}/download": {
+      "get": {
+        "summary": "Get download link for owned game (JWT required)",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Download URL"}, "403": {"description": "Not owned"}}
+      }
+    },
+    "/api/games/{game_id}/images": {
+      "get": {
+        "summary": "List all images for a game",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "List of images"}}
+      },
+      "post": {
+        "summary": "Add image to game (company only)",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {"required": true, "content": {"multipart/form-data": {"schema": {"type": "object", "properties": {"image": {"type": "string", "format": "binary"}}}}}},
+        "responses": {"201": {"description": "Image added"}, "400": {"description": "Validation error"}}
+      }
+    },
+    "/api/games/images/{image_id}": {
+      "put": {
+        "summary": "Edit/replace game image (company only)",
+        "parameters": [
+          {"name": "image_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {"required": true, "content": {"multipart/form-data": {"schema": {"type": "object", "properties": {"image": {"type": "string", "format": "binary"}}}}}},
+        "responses": {"200": {"description": "Image updated"}, "400": {"description": "Validation error"}}
+      },
+      "delete": {
+        "summary": "Delete game image (company only)",
+        "parameters": [
+          {"name": "image_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Image deleted"}, "404": {"description": "Not found"}}
+      }
+    },
+    "/api/games/search": {
+      "get": {
+        "summary": "Search games by title",
+        "parameters": [
+          {"name": "q", "in": "query", "required": false, "schema": {"type": "string"}}
+        ],
+        "responses": {"200": {"description": "List of games"}}
+      }
+    },
+    "/api/games/category/{category_id}": {
+      "get": {
+        "summary": "List games by category",
+        "parameters": [
+          {"name": "category_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "List of games"}}
+      }
+    },
+    "/api/games/{game_id}/reviews": {
+      "get": {
+        "summary": "List reviews for a game",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "List of reviews"}}
+      }
+    },
+    "/api/games/{game_id}/achievements": {
+      "get": {
+        "summary": "List achievements for a game",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "List of achievements"}}
+      }
+    },
+    "/api/games/{game_id}/offer": {
+      "post": {
+        "summary": "Create offer on game (admin only)",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"discount_percent": {"type": "number"}, "start_date": {"type": "string"}, "end_date": {"type": "string"}, "message": {"type": "string"}}}}}},
+        "responses": {"201": {"description": "Offer created"}, "400": {"description": "Validation error"}}
+      }
+    },
+    "/api/games/{game_id}/report": {
+      "post": {
+        "summary": "Report a game (JWT required)",
+        "parameters": [
+          {"name": "game_id", "in": "path", "required": true, "schema": {"type": "integer"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"reason": {"type": "string"}}}}}},
+        "responses": {"200": {"description": "Report submitted"}, "400": {"description": "Validation error"}}
+      }
+    },
+    "/api/categories": {
+      "get": {"summary": "List all categories", "responses": {"200": {"description": "List of categories"}}},
+      "post": {"summary": "Create category", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}}}}, "responses": {"201": {"description": "Category created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/purchases": {
+      "get": {"summary": "List all purchases", "responses": {"200": {"description": "List of purchases"}}},
+      "post": {"summary": "Create purchase", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"user_id": {"type": "integer"}, "game_id": {"type": "integer"}, "price": {"type": "number"}, "payment_method_id": {"type": "integer"}, "payment_details": {"type": "object"}}}}}}, "responses": {"201": {"description": "Purchase created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/reviews": {
+      "get": {"summary": "List all reviews", "responses": {"200": {"description": "List of reviews"}}},
+      "post": {"summary": "Create review", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"user_id": {"type": "integer"}, "game_id": {"type": "integer"}, "rating": {"type": "integer"}, "comment": {"type": "string"}}}}}}, "responses": {"201": {"description": "Review created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/reviews/{review_id}/report": {
+      "post": {"summary": "Report a review (JWT required)", "parameters": [{"name": "review_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"reason": {"type": "string"}}}}}}, "responses": {"200": {"description": "Report submitted"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/review_reports": {
+      "get": {"summary": "List all review reports (admin only)", "responses": {"200": {"description": "List of reports"}}}
+    },
+    "/api/game_reports": {
+      "get": {"summary": "List all game reports (admin only)", "responses": {"200": {"description": "List of reports"}}}
+    },
+    "/api/users": {
+      "get": {"summary": "List all users", "responses": {"200": {"description": "List of users"}}},
+      "post": {"summary": "Create user (admin only)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"username": {"type": "string"}, "email": {"type": "string"}, "password_hash": {"type": "string"}}}}}}, "responses": {"201": {"description": "User created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}": {
+      "get": {"summary": "Get user profile", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "User profile"}, "404": {"description": "Not found"}}},
+      "put": {"summary": "Update user profile", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object"}}}}, "responses": {"200": {"description": "User updated"}, "400": {"description": "Validation error"}}},
+      "delete": {"summary": "Delete user (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "User deleted"}, "404": {"description": "Not found"}}}
+    },
+    "/api/users/{user_id}/deactivate": {
+      "post": {"summary": "Deactivate user (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "User deactivated"}, "404": {"description": "Not found"}}}
+    },
+    "/api/users/{user_id}/promote": {
+      "post": {"summary": "Promote user to admin/company/user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"role": {"type": "string"}}}}}}, "responses": {"200": {"description": "User promoted"}, "400": {"description": "Invalid role"}}}
+    },
+    "/api/users/{user_id}/avatar": {
+      "post": {"summary": "Upload user avatar (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"multipart/form-data": {"schema": {"type": "object", "properties": {"avatar": {"type": "string", "format": "binary"}}}}}}, "responses": {"200": {"description": "Avatar uploaded"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/change_email": {
+      "post": {"summary": "Request email change (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"new_email": {"type": "string"}}}}}}, "responses": {"200": {"description": "OTP sent to new email"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/confirm_email_change": {
+      "post": {"summary": "Confirm email change (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"otp": {"type": "string"}}}}}}, "responses": {"200": {"description": "Email changed"}, "400": {"description": "Invalid or expired OTP"}}}
+    },
+    "/api/users/{user_id}/change_password": {
+      "post": {"summary": "Request password change (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"new_password": {"type": "string"}}}}}}, "responses": {"200": {"description": "OTP sent to email"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/confirm_password_change": {
+      "post": {"summary": "Confirm password change (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"otp": {"type": "string"}}}}}}, "responses": {"200": {"description": "Password changed"}, "400": {"description": "Invalid or expired OTP"}}}
+    },
+    "/api/users/search": {
+      "get": {"summary": "Search users by username", "parameters": [{"name": "q", "in": "query", "required": false, "schema": {"type": "string"}}], "responses": {"200": {"description": "List of users"}}}
+    },
+    "/api/userlibrary": {
+      "get": {"summary": "List all user library entries (JWT required)", "responses": {"200": {"description": "List of entries"}}},
+      "post": {"summary": "Add entry to user library (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"user_id": {"type": "integer"}, "game_id": {"type": "integer"}, "playtime": {"type": "integer"}}}}}}, "responses": {"201": {"description": "Entry created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/library": {
+      "get": {"summary": "Get user library by user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of games"}}}
+    },
+    "/api/friends": {
+      "get": {"summary": "List all friends (JWT required)", "responses": {"200": {"description": "List of friends"}}},
+      "post": {"summary": "Send friend request (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"user_id": {"type": "integer"}, "friend_id": {"type": "integer"}, "status": {"type": "string"}}}}}}, "responses": {"201": {"description": "Friend request sent"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/friends/{friend_id}/accept": {
+      "post": {"summary": "Accept friend request (JWT required)", "parameters": [{"name": "friend_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "Friend request accepted"}, "404": {"description": "Not found"}}}
+    },
+    "/api/friends/{friend_id}/reject": {
+      "post": {"summary": "Reject friend request (JWT required)", "parameters": [{"name": "friend_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "Friend request rejected"}, "404": {"description": "Not found"}}}
+    },
+    "/api/friends/{friend_id}": {
+      "delete": {"summary": "Remove friend", "parameters": [{"name": "friend_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "Friend removed"}, "404": {"description": "Not found"}}}
+    },
+    "/api/users/{user_id}/friends": {
+      "get": {"summary": "List friends by user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of friends"}}},
+      "post": {"summary": "Send friend request by user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"friend_id": {"type": "integer"}}}}}}, "responses": {"201": {"description": "Friend request sent"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/friend_requests": {
+      "get": {"summary": "List friend requests for user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of friend requests"}}}
+    },
+    "/api/wishlist": {
+      "get": {"summary": "List all wishlist entries (JWT required)", "responses": {"200": {"description": "List of wishlist entries"}}},
+      "post": {"summary": "Add to wishlist (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"user_id": {"type": "integer"}, "game_id": {"type": "integer"}}}}}}, "responses": {"201": {"description": "Wishlist entry created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/wishlist": {
+      "get": {"summary": "Get wishlist by user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of wishlist entries"}}}
+    },
+    "/api/achievements": {
+      "get": {"summary": "List all achievements (JWT required)", "responses": {"200": {"description": "List of achievements"}}},
+      "post": {"summary": "Create achievement (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"name": {"type": "string"}, "description": {"type": "string"}}}}}}, "responses": {"201": {"description": "Achievement created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/achievements": {
+      "get": {"summary": "Get achievements by user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of achievements"}}}
+    },
+    "/api/inventory": {
+      "get": {"summary": "List all inventory items (JWT required)", "responses": {"200": {"description": "List of inventory items"}}},
+      "post": {"summary": "Add inventory item (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"user_id": {"type": "integer"}, "game_id": {"type": "integer"}, "item_type": {"type": "string"}, "item_name": {"type": "string"}, "trade_status": {"type": "string"}}}}}}, "responses": {"201": {"description": "Inventory item created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/inventory": {
+      "get": {"summary": "Get inventory by user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of inventory items"}}}
+    },
+    "/api/supporttickets": {
+      "get": {"summary": "List all support tickets (JWT required)", "responses": {"200": {"description": "List of tickets"}}},
+      "post": {"summary": "Create support ticket (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"user_id": {"type": "integer"}, "issue_type": {"type": "string"}, "status": {"type": "string"}, "message": {"type": "string"}}}}}}, "responses": {"201": {"description": "Ticket created"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/users/{user_id}/supporttickets": {
+      "get": {"summary": "Get support tickets by user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of tickets"}}}
+    },
+    "/api/messages": {
+      "post": {"summary": "Send message (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"to_user_id": {"type": "integer"}, "content": {"type": "string"}}}}}}, "responses": {"200": {"description": "Message sent"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/messages/{user_id}": {
+      "get": {"summary": "Get messages with user (JWT required)", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of messages"}}}
+    },
+    "/api/activity": {
+      "get": {"summary": "Get user activity log (JWT required)", "responses": {"200": {"description": "List of activity logs"}}}
+    },
+    "/api/news": {
+      "get": {"summary": "Get news/events/announcements", "responses": {"200": {"description": "List of news"}}}
+    },
+    "/api/users/{user_id}/recommendations": {
+      "get": {"summary": "Get game recommendations for user", "parameters": [{"name": "user_id", "in": "path", "required": true, "schema": {"type": "integer"}}], "responses": {"200": {"description": "List of recommendations"}}}
+    },
+    "/api/games/transfer": {
+      "post": {"summary": "Transfer game ownership (JWT required)", "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"to_user_id": {"type": "integer"}, "game_id": {"type": "integer"}}}}}}, "responses": {"200": {"description": "Game transferred"}, "400": {"description": "Validation error"}}}
+    },
+    "/api/debug/get_otp": {
+      "get": {"summary": "Get OTP for a user (debug only)", "parameters": [{"name": "email", "in": "query", "required": true, "schema": {"type": "string"}}], "responses": {"200": {"description": "OTP info"}, "404": {"description": "User not found"}}}
+    },
+    "/api/docs": {
+      "get": {"summary": "Get API endpoint documentation", "responses": {"200": {"description": "API docs"}}}
+    }
+  }
+}

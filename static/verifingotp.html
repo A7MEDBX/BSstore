@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - YourStore</title>
+    <link rel="stylesheet" href="verifingotp.css">
+</head>
+<body class="register-bg">
+    <div class="register-modal verify-modal">
+        <div class="register-logo">LOGO</div>
+        <div class="register-title verify-title">Verify Your Email</div>
+        <div class="verify-desc">
+            Enter the 6-digit code sent to <span class="verify-email" id="otpEmailDisplay">your@email.com</span>.
+        </div>
+        <form class="verify-form" id="verifyOtpForm">
+            <div class="verify-inputs">
+                <input type="text" maxlength="1" inputmode="numeric" class="verify-code-input otp-input" />
+                <input type="text" maxlength="1" inputmode="numeric" class="verify-code-input otp-input" />
+                <input type="text" maxlength="1" inputmode="numeric" class="verify-code-input otp-input" />
+                <input type="text" maxlength="1" inputmode="numeric" class="verify-code-input otp-input" />
+                <input type="text" maxlength="1" inputmode="numeric" class="verify-code-input otp-input" />
+                <input type="text" maxlength="1" inputmode="numeric" class="verify-code-input otp-input" />
+            </div>
+            <button type="submit" class="register-continue-btn verify-btn" id="verifyOtpBtn" disabled>Verify</button>
+        </form>
+        <div id="verifyOtpError" class="otp-error"></div>
+        <div id="verifyOtpSuccess" class="otp-success"></div>
+        <div class="verify-footer">
+            Already verified? <a href="login.html">Sign in</a>
+        </div>
+    </div>
+    <script src="verifingotp.js"></script>
+</body>
+</html>

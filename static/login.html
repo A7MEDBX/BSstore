@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - YourStore</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="login.css">
+</head>
+<body class="login-bg">
+    <div class="login-modal">
+        <div class="login-logo">LOGO</div>
+        <div class="login-title">Sign In</div>
+        <form class="login-form" id="loginForm">
+            <label for="loginUsername">Username</label>
+            <input type="text" id="loginUsername" name="username" required autocomplete="username">
+            <label for="loginPassword">Password</label>
+            <div class="login-password-wrapper" style="margin: 0;">
+                <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
+                <button type="button" class="login-toggle-password" tabindex="-1" aria-label="Show or hide password">
+                    <svg id="eyeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c7d5e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+            <a href="#" class="login-forgot-link" id="loginForgotLink">Forgot password?</a>
+            <button type="submit" class="login-signin-btn">Sign in</button>
+            
+        </form>
+        <div class="login-footer">
+            <a href="register.html" class="login-create-account">Create account</a>
+            <a href="#" class="login-privacy-link">Privacy Policy</a>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script src="login.js"></script>
+    <script>
+    // Create a modern popup for email input
+    function showResetEmailPopup() {
+        return new Promise((resolve) => {
+            // Remove any existing popup
+            const old = document.getElementById('reset-email-popup');
+            if (old) old.remove();
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'reset-email-popup';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(0,0,0,0.55)';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '9999';
+
+            // Popup box
+            const box = document.createElement('div');
+            box.style.background = '#23272e';
+            box.style.borderRadius = '16px';
+            box.style.boxShadow = '0 8px 32px rgba(0,0,0,0.25)';
+            box.style.padding = '32px 28px 24px 28px';
+            box.style.width = '340px';
+            box.style.maxWidth = '90vw';
+            box.style.display = 'flex';
+            box.style.flexDirection = 'column';
+            box.style.alignItems = 'center';
+            box.style.position = 'relative';
+            // Close button
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '12px';
+            closeBtn.style.right = '16px';
+            closeBtn.style.background = 'none';
+            closeBtn.style.border = 'none';
+            closeBtn.style.color = '#c7d5e0';
+            closeBtn.style.fontSize = '1.5rem';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.addEventListener('click', () => {
+                overlay.remove();
+                resolve(null);
+            });
+            box.appendChild(closeBtn);
+            // Title
+            const title = document.createElement('div');
+            title.textContent = 'Reset your password';
+            title.style.fontSize = '1.25rem';
+            title.style.fontWeight = 'bold';
+            title.style.color = '#fff';
+            title.style.marginBottom = '10px';
+            box.appendChild(title);
+            // Description
+            const desc = document.createElement('div');
+            desc.textContent = 'Enter your account email to reset your password.';
+            desc.style.color = '#c7d5e0';
+            desc.style.fontSize = '1rem';
+            desc.style.marginBottom = '18px';
+            box.appendChild(desc);
+            // Input
+            const input = document.createElement('input');
+            input.type = 'email';
+            input.placeholder = 'Email address';
+            input.style.width = '100%';
+            input.style.padding = '10px 12px';
+            input.style.borderRadius = '8px';
+            input.style.border = '1px solid #38404a';
+            input.style.background = '#181a20';
+            input.style.color = '#fff';
+            input.style.fontSize = '1rem';
+            input.style.marginBottom = '12px';
+            input.autofocus = true;
+            box.appendChild(input);
+            // Error
+            const error = document.createElement('div');
+            error.style.color = '#ff4e4e';
+            error.style.fontSize = '0.97rem';
+            error.style.height = '20px';
+            error.style.marginBottom = '8px';
+            box.appendChild(error);
+            // Continue button
+            const btn = document.createElement('button');
+            btn.textContent = 'Continue';
+            btn.style.width = '100%';
+            btn.style.padding = '10px 0';
+            btn.style.background = 'linear-gradient(90deg,#1ba9ff 0,#3b7cff 100%)';
+            btn.style.color = '#fff';
+            btn.style.fontWeight = 'bold';
+            btn.style.fontSize = '1.08rem';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '8px';
+            btn.style.cursor = 'pointer';
+            btn.style.marginTop = '4px';
+            // Loading overlay
+            const loading = document.createElement('div');
+            loading.style.position = 'absolute';
+            loading.style.top = '0';
+            loading.style.left = '0';
+            loading.style.width = '100%';
+            loading.style.height = '100%';
+            loading.style.background = 'rgba(30,34,40,0.85)';
+            loading.style.display = 'flex';
+            loading.style.alignItems = 'center';
+            loading.style.justifyContent = 'center';
+            loading.style.borderRadius = '16px';
+            loading.style.zIndex = '100';
+            loading.style.transition = 'opacity 0.2s';
+            loading.style.opacity = '0';
+            loading.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+                <div class="loader" style="width:36px;height:36px;border:4px solid #1ba9ff;border-top:4px solid #23272e;border-radius:50%;animation:spin 1s linear infinite;"></div>
+                <div style="color:#c7d5e0;font-size:1.05rem;">Sending reset code...</div>
+            </div>`;
+            // Add loader animation CSS
+            const style = document.createElement('style');
+            style.textContent = `@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`;
+            document.head.appendChild(style);
+            btn.addEventListener('click', async () => {
+                if (!input.value || !input.value.includes('@')) {
+                    error.textContent = 'Please enter a valid email.';
+                    input.focus();
+                    return;
+                }
+                btn.disabled = true;
+                error.textContent = '';
+                box.appendChild(loading);
+                setTimeout(()=>{loading.style.opacity='1';},10);
+                // Send code request to backend
+                try {
+                    const res = await fetch('http://127.0.0.1:5000/api/password_reset/request', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: input.value.trim() })
+                    });
+                    let data;
+                    try { data = await res.json(); } catch { data = {}; }
+                    if (res.ok && (data.success || data.message)) {
+                        overlay.remove();
+                        resolve(input.value.trim());
+                    } else {
+                        loading.style.opacity = '0';
+                        setTimeout(()=>box.removeChild(loading),200);
+                        error.textContent = (data && (data.error || data.message)) || 'Failed to send reset code.';
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    loading.style.opacity = '0';
+                    setTimeout(()=>box.removeChild(loading),200);
+                    error.textContent = 'Network error.';
+                    btn.disabled = false;
+                }
+            });
+            box.appendChild(btn);
+            // Enter key
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') btn.click();
+            });
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            input.focus();
+        });
+    }
+    document.getElementById('loginForgotLink').addEventListener('click', async function(e) {
+        e.preventDefault();
+        const email = await showResetEmailPopup();
+        if (email) {
+            localStorage.setItem('resetEmail', email);
+            window.location.href = 'resetpassword.html' + (email ? ('?email=' + encodeURIComponent(email)) : '');
+        }
+    });
+    </script>
+</body>
+</html>

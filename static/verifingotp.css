@@ -1,0 +1,287 @@
+/* verifingotp.css - OTP verification page, styled like Epic Games/your screenshot */
+body.register-bg {
+    background: #141416;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    color: #c7d5e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.register-modal.verify-modal {
+    background: #18181c;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 100%;
+    margin: 40px auto;
+    padding: 44px 32px 32px 32px;
+    box-shadow: 0 8px 32px #000a, 0 1.5px 4px #0002;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1.5px solid #23262e;
+}
+.register-logo img {
+    display: block;
+    margin: 0 auto 18px auto;
+    filter: grayscale(1) brightness(2);
+}
+.verify-title {
+    font-size: 2em;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 18px;
+    text-align: center;
+    letter-spacing: 0.01em;
+}
+.verify-desc {
+    color: #c7d5e0;
+    font-size: 1.13em;
+    margin-bottom: 18px;
+    text-align: center;
+    line-height: 1.5;
+}
+.verify-email {
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.01em;
+}
+.verify-note {
+    color: #c7d5e0;
+    font-size: 1em;
+    margin-bottom: 18px;
+    text-align: center;
+}
+.verify-link {
+    color: #1ba9ff;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font: inherit;
+    padding: 0;
+    transition: color 0.2s;
+}
+.verify-link:hover {
+    color: #1190d9;
+}
+.verify-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 18px;
+}
+.verify-inputs {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+.verify-code-input.otp-input {
+    width: 54px;
+    height: 62px;
+    border-radius: 14px;
+    border: 2.5px solid #23262e;
+    background: #23262e;
+    color: #fff;
+    font-size: 2.2em;
+    text-align: center;
+    font-weight: 700;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #0002;
+}
+.verify-code-input.otp-input:focus {
+    border: 2.5px solid #1ba9ff;
+    box-shadow: 0 0 0 2px #1ba9ff44;
+    background: #23262e;
+}
+.verify-btn {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 10px;
+    padding: 16px 0;
+    font-size: 1.15em;
+    font-weight: bold;
+    border-radius: 10px;
+    background: #1ba9ff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 2px 8px #0002;
+}
+.verify-btn:disabled {
+    background: #23262e;
+    color: #888;
+    cursor: not-allowed;
+}
+.verify-btn:not(:disabled):hover {
+    background: #1190d9;
+}
+.otp-error {
+    color: #ff4d4f;
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 18px;
+    font-size: 1em;
+}
+.otp-success {
+    color: #1ba9ff;
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 18px;
+    font-size: 1em;
+}
+.verify-footer {
+    color: #c7d5e0;
+    font-size: 1em;
+    text-align: center;
+    margin-top: 18px;
+}
+.otp-actions {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+@media (max-width: 500px) {
+    .register-modal.verify-modal {
+        padding: 24px 6vw 18px 6vw;
+        max-width: 98vw;
+    }
+    .verify-code-input.otp-input {
+        width: 36px;
+        height: 44px;
+        font-size: 1.3em;
+    }
+}
+@media (max-width: 600px) {
+    .register-modal.verify-modal {
+        max-width: 98vw;
+    }
+    .verify-btn {
+        max-width: 98vw;
+    }
+}
+.registration-complete-popup {
+    position: fixed;
+    left: 0; right: 0; top: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: rgba(20,22,24,0.32);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(.4,0,.2,1);
+}
+.registration-complete-popup.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.registration-complete-popup .popup-content {
+    background: #181a20;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 36px 32px 28px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 320px;
+    max-width: 90vw;
+    animation: popup-bounce 0.4s cubic-bezier(.4,0,.2,1);
+}
+.registration-complete-popup .popup-title {
+    color: #fff;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+.registration-complete-popup .popup-msg {
+    color: #c7d5e0;
+    font-size: 1.08rem;
+    text-align: center;
+}
+.registration-complete-popup svg {
+    margin-bottom: 8px;
+    display: block;
+}
+@keyframes popup-bounce {
+    0% { transform: scale(0.92); opacity: 0; }
+    60% { transform: scale(1.04); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.registration-complete-popup {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(20, 20, 22, 0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+}
+.registration-complete-popup.show {
+    opacity: 1;
+    pointer-events: all;
+}
+.registration-complete-popup .popup-content {
+    background: #23262e;
+    border-radius: 18px;
+    padding: 40px 36px 32px 36px;
+    box-shadow: 0 8px 32px #000a, 0 1.5px 4px #0002;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 320px;
+    max-width: 90vw;
+    animation: popup-bounce 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes popup-bounce {
+    0% { transform: scale(0.7); opacity: 0; }
+    60% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); }
+}
+.popup-title {
+    color: #1ba9ff;
+    font-size: 1.5em;
+    font-weight: 700;
+    margin: 18px 0 8px 0;
+    text-align: center;
+}
+.popup-msg {
+    color: #c7d5e0;
+    font-size: 1.08em;
+    text-align: center;
+}
+.registration-complete-popup svg {
+    display: block;
+    margin: 0 auto 0 auto;
+}
+.reset-input {
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 2px solid #23262e;
+    background: #23262e;
+    color: #fff;
+    font-size: 1.1em;
+    font-family: inherit;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #0002;
+}
+.reset-input:focus {
+    border: 2px solid #1ba9ff;
+    box-shadow: 0 0 0 2px #1ba9ff44;
+    background: #23262e;
+}
