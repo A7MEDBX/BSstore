@@ -7,73 +7,67 @@ function getQueryParam(name) {
 }
 
 // --- HEADER LOGIN STATE LOGIC (COOKIE SUPPORT) ---
-function getToken() {
-    // Try localStorage first
-    let token = localStorage.getItem('jwt_token');
-    if (token) return token;
-    // Fallback: try cookies
-    const match = document.cookie.match(/(?:^|; )jwt_token=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : null;
+// Modernized header logic for game page (only header-related JS)
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function updateHeaderUserMenu() {
+    const userCookie = getCookie('user');
+    const headerUserMenu = document.getElementById('headerUserMenu');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const userName = document.getElementById('userName');
+    const userAvatar = document.getElementById('userAvatar');
+    if (userCookie) {
+        const user = JSON.parse(decodeURIComponent(userCookie));
+        if (userName) userName.textContent = user.username;
+        if (userAvatar) userAvatar.textContent = user.username[0].toUpperCase();
+        if (headerUserMenu) headerUserMenu.style.display = 'flex';
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (registerBtn) registerBtn.style.display = 'none';
+    } else {
+        if (headerUserMenu) headerUserMenu.style.display = 'none';
+        if (loginBtn) loginBtn.style.display = '';
+        if (registerBtn) registerBtn.style.display = '';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- HEADER LOGIN STATE LOGIC ---
-    const token = getToken();
-    const loginBtn = document.getElementById('loginBtn');
-    const registerBtn = document.getElementById('registerBtn');
-    const userMenu = document.getElementById('headerUserMenu');
+    // --- HEADER LOGIN STATE LOGIC (COOKIE SUPPORT) ---
+    updateHeaderUserMenu();
+    // Dropdown logic for user menu
     const userMenuBtn = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
-    const userName = document.getElementById('userName');
-    const userAvatar = document.getElementById('userAvatar');
-    const signOutBtn = document.getElementById('signOutBtn');
-
-    function showUserMenu(user) {
-        loginBtn.style.display = 'none';
-        registerBtn.style.display = 'none';
-        userMenu.style.display = '';
-        userName.textContent = user.username;
-        userAvatar.textContent = user.username ? user.username[0].toUpperCase() : 'U';
-    }
-    function showLoginRegister() {
-        loginBtn.style.display = '';
-        registerBtn.style.display = '';
-        userMenu.style.display = 'none';
-    }
-    // Dropdown logic
     if (userMenuBtn && userDropdown) {
-        userMenuBtn.onclick = function(e) {
+        userMenuBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            userDropdown.style.display = userDropdown.style.display === 'block' ? 'none' : 'block';
-        };
-        document.body.addEventListener('click', function() {
+            const isOpen = userDropdown.style.display === 'block';
+            userDropdown.style.display = isOpen ? 'none' : 'block';
+            userMenuBtn.classList.toggle('active', !isOpen);
+        });
+        document.addEventListener('click', function() {
             userDropdown.style.display = 'none';
+            userMenuBtn.classList.remove('active');
+        });
+        userDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
         });
     }
     // Sign out logic
+    const signOutBtn = document.getElementById('signOutBtn');
     if (signOutBtn) {
-        signOutBtn.onclick = function() {
-            localStorage.removeItem('jwt_token');
-            showLoginRegister();
+        signOutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00; path=/;";
+            document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             window.location.reload();
-        };
-    }
-    // Check login state
-    if (token) {
-        fetch(`${BASE_URL}/api/me`, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        })
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(user => {
-            showUserMenu(user);
-        })
-        .catch(() => {
-            showLoginRegister();
         });
-    } else {
-        showLoginRegister();
     }
 
+    // --- GAME LOADING LOGIC ---
     const gameId = getQueryParam('id');
     if (!gameId) return;
     fetch(`${BASE_URL}/api/games/${gameId}`)

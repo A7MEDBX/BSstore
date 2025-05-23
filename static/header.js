@@ -1,0 +1,1 @@
+// (empty or original header.js content before cart system was added)
