@@ -237,25 +237,50 @@ function renderCartItems(response) {
     const items = response.items || [];
     const cartItemsContainer = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
+    const cartPrice = document.getElementById('cart-price');
     cartItemsContainer.innerHTML = '';
     let total = 0;
     items.forEach(item => {
+        total += item.price;
         const itemDiv = document.createElement('div');
-        itemDiv.className = 'cart-item';
+        itemDiv.className = 'cart-item-modern epic-cart-item';
         itemDiv.innerHTML = `
-            <p>${item.title}</p>
-            <p>Price: $${item.price}</p>
-            <button class="remove-btn" data-id="${item.game_id}">Remove</button>
+            <div class="cart-item-modern-imgbox">
+                <img src="${item.image || 'static/images/games/default.jpg'}" alt="${item.title}" class="cart-item-modern-img">
+            </div>
+            <div class="cart-item-modern-details">
+                <div class="cart-item-modern-title-row">
+                    <span class="cart-item-modern-badge">Base Game</span>
+                    <span class="cart-item-modern-title">${item.title}</span>
+                    <span class="cart-item-modern-price" style="margin-left:auto;">$${item.price.toFixed(2)}</span>
+                </div>
+                <div class="cart-item-modern-rating-row" style="margin-bottom:12px;">
+                    <img src="static/images/games/esrb-m.png" class="cart-item-modern-rating-img" alt="Mature 17+">
+                    <span class="cart-item-modern-rating-label">Mature 17+</span>
+                    <span class="cart-item-modern-rating-desc">Blood and Gore, Language, Sexual Themes, Violence</span>
+                </div>
+                <div class="cart-item-modern-reward-row">
+                    <span class="cart-item-modern-reward-icon">&#9888;</span>
+                    <span class="cart-item-modern-reward-text">Earn a boosted 20% back in Epic Rewards, offer ends Aug 31.</span>
+                </div>
+                <div class="cart-item-modern-refund-row">
+                    Self-Refundable <span class="cart-item-modern-refund-icon" title="This item is self-refundable.">?</span>
+                </div>
+                <div class="cart-item-modern-actions-row">
+                    <button class="cart-item-modern-remove" data-id="${item.game_id}">Remove</button>
+                    <button class="cart-item-modern-wishlist">Move to wishlist</button>
+                </div>
+            </div>
         `;
         cartItemsContainer.appendChild(itemDiv);
-        total += item.price;
     });
-    cartTotal.textContent = `$${total.toFixed(2)}`;
+    if (cartPrice) cartPrice.textContent = `$${total.toFixed(2)}`;
+    if (cartTotal) cartTotal.textContent = `$${total.toFixed(2)}`;
     attachRemoveHandlers();
 }
 
 function attachRemoveHandlers() {
-    const removeButtons = document.querySelectorAll('.remove-btn');
+    const removeButtons = document.querySelectorAll('.cart-item-modern-remove');
     removeButtons.forEach(button => {
         button.addEventListener('click', async (e) => {
             const gameId = e.target.dataset.id;

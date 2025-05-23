@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Store - Cart</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="cart_epic.css">
     <script defer src="cart.js"></script>
 </head>
 <body>
@@ -46,15 +47,28 @@
     </header>
     <main>
         <h1>Your Cart</h1>
-        <section id="cart-container">
-            <div id="cart-items">
+        <div class="cart-page-epic">
+            <div class="cart-items-list" id="cart-items">
                 <!-- Cart items will be dynamically inserted here -->
             </div>
-            <div id="cart-summary">
-                <p>Total: <span id="cart-total">$0.00</span></p>
-                <button id="checkout-btn">Checkout</button>
+            <div class="cart-summary-epic">
+                <div class="cart-summary-epic-title">Games and Apps Summary</div>
+                <div class="cart-summary-epic-row">
+                    <span>Price</span>
+                    <span class="cart-summary-epic-price" id="cart-price">$0.00</span>
+                </div>
+                <div class="cart-summary-epic-row">
+                    <span>Taxes</span>
+                    <span class="cart-summary-epic-taxes">Calculated at Checkout</span>
+                </div>
+                <div class="cart-summary-epic-divider"></div>
+                <div class="cart-summary-epic-row cart-summary-epic-row-subtotal">
+                    <span><b>Subtotal</b></span>
+                    <span class="cart-summary-epic-total" id="cart-total">$0.00</span>
+                </div>
+                <button class="cart-summary-epic-checkout" id="checkout-btn">Check Out</button>
             </div>
-        </section>
+        </div>
     </main>
     <footer>
         <p>&copy; 2023 YourStore. All rights reserved.</p>
