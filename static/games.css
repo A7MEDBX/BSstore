@@ -1,0 +1,383 @@
+/* games.css - Epic Games Store style for games.html */
+@import url('style.css');
+
+body {
+    background: #10131a;
+    color: #fff;
+}
+
+.eg-main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 40px 48px 40px;
+}
+
+.eg-browse-header-row {
+    display: flex;
+    align-items: center;
+    margin: 32px 0 0 0;
+    gap: 32px;
+}
+.eg-browse-tabs {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+.eg-search-bar {
+    background: #181a20;
+    border: none;
+    color: #fff;
+    font-size: 1.08em;
+    border-radius: 8px;
+    padding: 10px 18px;
+    margin-right: 32px;
+    width: 260px;
+    outline: none;
+}
+.eg-browse-tab {
+    color: #bfc4ce;
+    font-size: 1.08em;
+    font-weight: 600;
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 8px 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border 0.2s;
+}
+.eg-browse-tab.active, .eg-browse-tab:hover {
+    color: #fff;
+    opacity: 1;
+    border-bottom: 2px solid #fff;
+}
+
+.eg-genres-section {
+    margin: 48px 0 32px 0;
+}
+.eg-section-title {
+    font-size: 2.5em;
+    font-weight: 800;
+    margin-bottom: 32px;
+    letter-spacing: 0.01em;
+}
+.eg-genres-carousel-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+}
+.eg-genres-carousel {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.eg-genres-carousel::-webkit-scrollbar {
+    display: none;
+}
+.eg-carousel-arrow {
+    background: #23232a;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.eg-carousel-arrow:hover {
+    background: #1ba9ff;
+    color: #fff;
+}
+
+.eg-genre-card {
+    display: block;
+    flex: 0 0 auto;
+    min-width: 200px;
+    max-width: 240px;
+    background: #23232a;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.eg-genre-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.eg-genre-covers {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.eg-genre-cover-img {
+    width: 80px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #181a20;
+}
+.eg-genre-card-title {
+    color: #fff;
+    font-size: 1.25em;
+    font-weight: 600;
+    text-align: center;
+    width: 100%;
+}
+
+.eg-content-row {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+}
+.eg-sidebar {
+    width: 320px;
+    background: #181a20;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #0002;
+    padding: 24px 18px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 220px;
+    color: #fff;
+}
+.eg-content-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.eg-show-row {
+    color: #fff;
+    font-size: 1.15em;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.eg-show-dropdown {
+    background: #23232a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 1.08em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-left: 6px;
+}
+.eg-show-dropdown:hover {
+    background: #1ba9ff;
+    color: #fff;
+}
+
+.eg-filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.12em;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+}
+.eg-reset-link {
+    color: #1ba9ff;
+    font-size: 0.98em;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+.eg-filters-search {
+    display: flex;
+    align-items: center;
+    background: #23232a;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 38px;
+    margin-bottom: 12px;
+}
+.eg-filters-input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1em;
+    width: 100%;
+    outline: none;
+}
+.eg-filters-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.eg-filter-section {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.08em;
+    font-weight: 500;
+    width: 100%;
+    text-align: left;
+    border-radius: 8px;
+    margin-bottom: 2px;
+}
+.eg-accordion-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.08em;
+    font-weight: 500;
+    width: 100%;
+    text-align: left;
+    padding: 10px 0;
+    cursor: pointer;
+    outline: none;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.eg-accordion-btn:after {
+    content: '▼';
+    font-size: 0.9em;
+    margin-left: 8px;
+    transition: transform 0.2s;
+}
+.eg-accordion-btn.active:after {
+    transform: rotate(-180deg);
+}
+.eg-accordion-panel {
+    display: none;
+    padding-left: 8px;
+    margin-bottom: 8px;
+}
+.eg-filters-accordion .eg-accordion-btn.active + .eg-accordion-panel {
+    display: block !important;
+}
+.sidebar-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #bfc4ce;
+}
+.sidebar-checkbox-label input[type="checkbox"] {
+    accent-color: #1ba9ff;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.eg-games-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 36px 28px;
+}
+@media (max-width: 1400px) {
+    .eg-games-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 900px) {
+    .eg-content-row {
+        flex-direction: column;
+        gap: 18px;
+    }
+    .eg-sidebar {
+        width: 100%;
+        min-width: 0;
+        margin-bottom: 24px;
+    }
+    .eg-games-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 600px) {
+    .eg-games-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.eg-game-card {
+    background: #23232a;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #0002;
+    padding: 18px 14px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+    position: relative;
+    min-height: 340px;
+}
+.eg-game-card:hover {
+    box-shadow: 0 8px 32px #1ba9ff33;
+    transform: translateY(-4px) scale(1.03);
+}
+
+.eg-game-card-img-wrap {
+    width: 100%;
+    aspect-ratio: 4/5;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;
+    background: #181a20;
+}
+.eg-game-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 14px;
+    display: block;
+}
+
+.eg-game-card-meta {
+    color: #bfc4ce;
+    font-size: 0.98em;
+    margin-bottom: 2px;
+}
+.eg-game-card-title {
+    color: #fff;
+    font-size: 1.13em;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+.eg-game-card-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.eg-game-card-badge {
+    background: #23232a;
+    color: #1ba9ff;
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 0.93em;
+    font-weight: 500;
+    border: 1px solid #1ba9ff44;
+}
+.eg-game-card-badge.free {
+    background: #1ba9ff;
+    color: #fff;
+    border: none;
+}
+.eg-game-card-price {
+    color: #fff;
+    font-size: 1.08em;
+    font-weight: 600;
+    margin-top: 2px;
+}
