@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Details</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
     <header class="main-header">
@@ -22,9 +23,11 @@
         <div class="header-right">
             <a href="login.html" id="loginBtn" class="header-login-btn">Login</a>
             <button id="registerBtn">Register</button>
-            <a href="cart.html" id="cartIcon" class="header-cart-icon">
-                <img src="images/cart-icon.png" alt="Cart" />
-            </a>
+            <span id="cartIconContainer" style="display:none;">
+                <a href="cart.html" id="cartIcon" class="header-cart-icon" style="margin:0 12px;">
+                    <span class="material-icons" style="font-size:28px;vertical-align:middle;color:#fff;">shopping_cart</span>
+                </a>
+            </span>
             <div class="header-user-menu" id="headerUserMenu" style="display: none;">
                 <button class="user-menu-btn" id="userMenuBtn">
                     <span class="user-avatar" id="userAvatar">A</span>
@@ -193,6 +196,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+
+<script>
+    // Show cart icon only if user is logged in
+    (function() {
+        function getToken() {
+            let token = localStorage.getItem('jwt_token');
+            if (token) return token;
+            let match = document.cookie.match(/(?:^|; )jwt_token=([^;]*)/);
+            if (match) return decodeURIComponent(match[1]);
+            match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+            if (match) return decodeURIComponent(match[1]);
+            return null;
+        }
+        if (getToken()) {
+            var cartIcon = document.getElementById('cartIconContainer');
+            if (cartIcon) cartIcon.style.display = '';
+        }
+    })();
+    </script>
 
 
 </body>

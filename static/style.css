@@ -1028,7 +1028,35 @@ footer {
     margin-bottom: 0;
     color: #fff;
 }
+
+/* Modern popup message styles */
+.popup-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background: #23262e;
+    color: #fff;
+    border-radius: 14px;
+    padding: 22px 38px;
+    font-size: 1.12rem;
+    font-weight: 600;
+    box-shadow: 0 8px 32px #000a;
+    opacity: 0.98;
+    text-align: center;
+    pointer-events: none;
+    animation: popup-fade-in 0.3s;
+}
+.popup-message.success {
+    background: #1ba9ff;
+    color: #fff;
+}
+.popup-message.error {
+    background: #ff6f61;
+    color: #fff;
+}
 @keyframes popup-fade-in {
     from { opacity: 0; transform: translate(-50%, -60%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
+    to { opacity: 0.98; transform: translate(-50%, -50%); }
 }

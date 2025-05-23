@@ -280,4 +280,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Popup message function
+    function showPopupMessage(message, type) {
+        const popup = document.createElement('div');
+        popup.className = `popup-message ${type}`;
+        popup.textContent = message;
+        document.body.appendChild(popup);
+        setTimeout(() => { popup.remove(); }, 3000);
+    }
+
+    // Example: show popup after removing a game from cart
+    // showPopupMessage('Game removed from cart', 'success');
 });

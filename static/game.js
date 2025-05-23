@@ -271,6 +271,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     newBtn.classList.remove('loading');
                 });
             }
+
+            // Remove from Cart button logic
+            const removeFromCartBtn = document.getElementById('removeFromCartBtn');
+            if (removeFromCartBtn) {
+                removeFromCartBtn.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    const token = getJwtToken();
+                    if (!token) {
+                        showCartErrorPopup('You must be logged in to remove from cart.');
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`${BASE_URL}/api/cart`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ game_id: gameId })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                            showCartErrorPopup(data.error || 'Failed to remove from cart.');
+                        } else {
+                            showPopupMessage('Game removed from cart', 'success');
+                        }
+                    } catch (err) {
+                        showCartErrorPopup('Failed to remove from cart.');
+                    }
+                });
+            }
         });
 });
 
@@ -287,9 +318,17 @@ function showCartSuccessPopup(msg) {
             <div class="popup-msg">${msg}</div>
         </div>
     `;
+    popup.style.opacity = '0';
+    popup.style.transition = 'opacity 0.3s';
     document.body.appendChild(popup);
-    setTimeout(() => popup.classList.add('show'), 10);
-    setTimeout(() => { popup.classList.remove('show'); setTimeout(() => popup.remove(), 400); }, 2400);
+    // Force reflow to ensure the transition applies
+    void popup.offsetWidth;
+    popup.classList.add('show');
+    popup.style.opacity = '1';
+    setTimeout(() => {
+        popup.style.opacity = '0';
+        setTimeout(() => popup.remove(), 400);
+    }, 2400);
 }
 
 function showCartErrorPopup(msg) {
@@ -308,4 +347,12 @@ function showCartErrorPopup(msg) {
     document.body.appendChild(popup);
     setTimeout(() => popup.classList.add('show'), 10);
     setTimeout(() => { popup.classList.remove('show'); setTimeout(() => popup.remove(), 400); }, 2400);
+}
+
+function showPopupMessage(message, type) {
+    const popup = document.createElement('div');
+    popup.className = `popup-message ${type}`;
+    popup.textContent = message;
+    document.body.appendChild(popup);
+    setTimeout(() => { popup.remove(); }, 3000);
 }

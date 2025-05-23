@@ -52,8 +52,11 @@ function initCartHeader() {
     if (signOutBtn) {
         signOutBtn.onclick = function() {
             localStorage.removeItem('jwt_token');
+            // Remove cookies by setting expiry in the past
+            document.cookie = 'jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             showLoginRegister();
-            window.location.reload();
+            window.location.href = 'index.html'; // Redirect to home
         };
     }
     if (token) {
@@ -285,6 +288,7 @@ function attachRemoveHandlers() {
         button.addEventListener('click', async (e) => {
             const gameId = e.target.dataset.id;
             await removeCartItem(gameId);
+            showPopupMessage('Game removed from cart', 'success');
             fetchCartItems();
         });
     });
@@ -318,8 +322,7 @@ function showPopupMessage(message, type) {
 // Ensure user data is loaded from cookies and login header is displayed dynamically
 window.onload = function() {
     // Update header user menu based on cookies
-    updateHeaderUserMenu();
-
+    initCartHeader();
     // Fetch and render cart items after initializing the header
     fetchCartItems();
 };
