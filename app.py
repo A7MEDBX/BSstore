@@ -15,7 +15,7 @@ import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 from flask_swagger_ui import get_swaggerui_blueprint
 import random
-from models import db, User, Game, Category, Purchase, Review, UserLibrary, Friend, Wishlist, Achievement, GameAchievement, UserAchievement, Inventory, SupportTicket, GameImage
+from models import db, User, Game, Category, Purchase, Review, UserLibrary, Friend, Wishlist, Achievement, GameAchievement, UserAchievement, Inventory, SupportTicket, GameImage, CartItem
 
 app = Flask(__name__)
 CORS(app)
@@ -554,6 +554,55 @@ def create_supportticket():
     db.session.add(ticket)
     db.session.commit()
     return jsonify({'id': ticket.id}), 201
+
+# --- CART APIs ---
+@app.route('/api/cart', methods=['GET'])
+@login_required
+def get_cart():
+    cart_items = CartItem.query.filter_by(user_id=request.user_id).all()
+    result = []
+    for item in cart_items:
+        game = Game.query.get(item.game_id)
+        if game:
+            result.append({
+                'cart_item_id': item.id,
+                'game_id': game.id,
+                'title': game.title,
+                'image': game.image_url,
+                'price': game.price
+            })
+    return jsonify({'items': result})
+
+@app.route('/api/cart', methods=['POST'])
+@login_required
+def add_to_cart():
+    try:
+        data = request.json
+        game_id = data.get('game_id')
+        if not game_id:
+            return jsonify({'error': 'game_id is required'}), 400
+        # Check if already in cart
+        cart_item = CartItem.query.filter_by(user_id=request.user_id, game_id=game_id).first()
+        if cart_item:
+            return jsonify({'error': 'Game already in cart.'}), 400
+        cart_item = CartItem(user_id=request.user_id, game_id=game_id)
+        db.session.add(cart_item)
+        db.session.commit()
+        return jsonify({'message': 'Game added to cart.'}), 201
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
+
+@app.route('/api/cart/<int:game_id>', methods=['DELETE'])
+@login_required
+def remove_from_cart(game_id):
+    cart_item = CartItem.query.filter_by(user_id=request.user_id, game_id=game_id).first()
+    if not cart_item:
+        return jsonify({'error': 'Game not in cart.'}), 404
+    db.session.delete(cart_item)
+    db.session.commit()
+    return jsonify({'message': 'Game removed from cart.'})
 
 # --- AUTHENTICATION (STUBS) ---
 def send_verification_email(user):

@@ -1,0 +1,40 @@
+<!-- Header HTML -->
+<header class="main-header">
+    <div class="header-left">
+        <span class="logo">YourStore</span>
+        <nav>
+            <ul>
+                <li><a href="index.html">Games</a></li>
+                <li><a href="#">Help</a></li>
+                <li><a href="#">Store</a></li>
+                <li><a href="#">Plus</a></li>
+            </ul>
+        </nav>
+    </div>
+    <div class="header-right">
+        <a href="login.html" id="loginBtn" class="header-login-btn">Login</a>
+        <button id="registerBtn">Register</button>
+        <a href="cart.html" id="cartIcon" class="header-cart-icon">
+            <img src="images/cart-icon.png" alt="Cart" />
+        </a>
+        <div class="header-user-menu" id="headerUserMenu" style="display: none;">
+            <button class="user-menu-btn" id="userMenuBtn">
+                <span class="user-avatar" id="userAvatar">A</span>
+                <span class="user-name" id="userName"></span>
+                <svg class="user-menu-arrow" width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            <div class="user-dropdown" id="userDropdown" style="display: none;">
+                <ul>
+                    <li><a href="#">My Achievements</a></li>
+                    <li><a href="#">Epic Rewards</a></li>
+                    <li><a href="#">Epic Wallet</a></li>
+                    <li><a href="#">Coupons</a></li>
+                    <li><a href="#">Account</a></li>
+                    <li><a href="#">Redeem Code</a></li>
+                    <li><a href="#">Wishlist</a></li>
+                    <li><a href="#" id="signOutBtn">Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>

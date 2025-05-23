@@ -7,7 +7,6 @@ function getQueryParam(name) {
 }
 
 // --- HEADER LOGIN STATE LOGIC (COOKIE SUPPORT) ---
-// Modernized header logic for game page (only header-related JS)
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -36,8 +35,9 @@ function updateHeaderUserMenu() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- HEADER LOGIN STATE LOGIC (COOKIE SUPPORT) ---
+    // Header login state
     updateHeaderUserMenu();
+
     // Dropdown logic for user menu
     const userMenuBtn = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
         });
     }
+
     // Sign out logic
     const signOutBtn = document.getElementById('signOutBtn');
     if (signOutBtn) {
@@ -70,25 +71,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- GAME LOADING LOGIC ---
     const gameId = getQueryParam('id');
     if (!gameId) return;
+
     fetch(`${BASE_URL}/api/games/${gameId}`)
         .then(res => res.json())
         .then(game => {
-            // Prepare media array (video + up to 6 images)
+            // Prepare media array (video + up to 7 items)
             let media = [];
-            if (game.video_url) {
-                media.push({type: 'video', url: game.video_url});
-            }
+            if (game.video_url) media.push({ type: 'video', url: game.video_url });
             if (game.images && Array.isArray(game.images) && game.images.length > 0) {
-                media = media.concat(game.images.slice(0, 7).map(url => ({type: 'img', url})));
+                media = media.concat(
+                    game.images.slice(0, 7).map(url => ({ type: 'img', url }))
+                );
             } else if (game.image_url) {
-                media.push({type: 'img', url: game.image_url});
+                media.push({ type: 'img', url: game.image_url });
             } else {
-                media.push({type: 'img', url: 'images/games/default.jpg'});
+                media.push({ type: 'img', url: 'images/games/default.jpg' });
             }
+
             // Carousel logic
             let currentIdx = 0;
             const mainDiv = document.getElementById('gameMediaMain');
             const thumbsDiv = document.getElementById('gameMediaThumbs');
+
             function showMedia(idx) {
                 mainDiv.innerHTML = '';
                 if (media[idx].type === 'video') {
@@ -101,26 +105,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     const img = document.createElement('img');
                     img.src = media[idx].url;
-                    img.alt = game.title + ' screenshot ' + (idx + 1);
+                    img.alt = `${game.title} screenshot ${idx + 1}`;
                     mainDiv.appendChild(img);
                 }
                 Array.from(thumbsDiv.children).forEach((el, i) => {
                     el.classList.toggle('active', i === idx);
                 });
             }
+
             thumbsDiv.innerHTML = '';
             media.forEach((item, idx) => {
-                let thumb;
-                if (item.type === 'video') {
-                    thumb = document.createElement('img');
-                    thumb.src = game.video_thumb || 'images/games/default.jpg';
-                    thumb.alt = game.title + ' video';
-                } else {
-                    thumb = document.createElement('img');
-                    thumb.src = item.url;
-                    thumb.alt = game.title + ' thumb ' + (idx + 1);
-                }
-                thumb.className = 'game-media-thumb' + (idx === 0 ? ' active' : '');
+                const thumb = document.createElement('img');
+                thumb.src =
+                    item.type === 'video'
+                        ? game.video_thumb || 'images/games/default.jpg'
+                        : item.url;
+                thumb.alt =
+                    item.type === 'video'
+                        ? `${game.title} video`
+                        : `${game.title} thumb ${idx + 1}`;
+                thumb.className = `game-media-thumb${idx === 0 ? ' active' : ''}`;
                 thumb.onclick = () => {
                     currentIdx = idx;
                     showMedia(idx);
@@ -128,12 +132,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 thumbsDiv.appendChild(thumb);
             });
+
             showMedia(0);
-            // Auto-iterate
             let autoIter = setInterval(() => {
                 currentIdx = (currentIdx + 1) % media.length;
                 showMedia(currentIdx);
             }, 4000);
+
             function resetAutoIter() {
                 clearInterval(autoIter);
                 autoIter = setInterval(() => {
@@ -141,34 +146,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     showMedia(currentIdx);
                 }, 4000);
             }
-            // Right panel details (logo, age, badge, info list)
+
+            // Right panel details
             const logo = document.getElementById('gameDetailsLogo');
             if (game.logo_url) {
                 logo.src = game.logo_url;
                 logo.style.display = '';
-            } else {
-                logo.style.display = 'none';
-            }
+            } else logo.style.display = 'none';
+
             const ageDiv = document.getElementById('gameDetailsAge');
             if (game.age_rating_img || game.age_rating_text) {
+                const ageImg = document.getElementById('gameDetailsAgeImg');
                 if (game.age_rating_img) {
-                    document.getElementById('gameDetailsAgeImg').src = game.age_rating_img;
-                    document.getElementById('gameDetailsAgeImg').style.display = '';
-                } else {
-                    document.getElementById('gameDetailsAgeImg').style.display = 'none';
-                }
-                document.getElementById('gameDetailsAgeText').textContent = game.age_rating_text || '';
+                    ageImg.src = game.age_rating_img;
+                    ageImg.style.display = '';
+                } else ageImg.style.display = 'none';
+                document.getElementById('gameDetailsAgeText').textContent =
+                    game.age_rating_text || '';
                 ageDiv.style.display = '';
-            } else {
-                ageDiv.style.display = 'none';
-            }
+            } else ageDiv.style.display = 'none';
+
             const badge = document.getElementById('gameDetailsBadge');
             if (game.badge) {
                 badge.textContent = game.badge;
                 badge.style.display = '';
-            } else {
-                badge.style.display = 'none';
-            }
+            } else badge.style.display = 'none';
+
             const infoList = document.getElementById('gameDetailsInfoList');
             infoList.innerHTML = `
                 <div class='game-details-info-list-row'><span class='game-details-info-list-label'>Epic Rewards</span><span class='game-details-info-list-value'>Earn 20% Back</span></div>
@@ -178,29 +181,131 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class='game-details-info-list-row'><span class='game-details-info-list-label'>Release Date</span><span class='game-details-info-list-value'>${game.release_date || 'TBA'}</span></div>
                 <div class='game-details-info-list-row'><span class='game-details-info-list-label'>Platform</span><span class='game-details-info-list-value'>PC</span></div>
             `;
-            // Set game details
+
+            // Main details
             document.getElementById('gameDetailsTitle').textContent = game.title;
-            document.getElementById('gameDetailsMeta').innerHTML =
-                `<span class='game-details-publisher'>${game.publisher || ''}</span> &bull; <span class='game-details-status'>${game.status || ''}</span>`;
-            // Set description from database
+            document.getElementById('gameDetailsMeta').innerHTML = `
+                <span class='game-details-publisher'>${game.publisher || ''}</span> &bull;
+                <span class='game-details-status'>${game.status || ''}</span>
+            `;
+
             const descElem = document.getElementById('gameDetailsDesc');
-            if (game.description && game.description.trim()) {
-                descElem.textContent = game.description;
-            } else {
-                descElem.textContent = '';
-            }
-            document.getElementById('gameDetailsPrice').textContent = (game.price !== undefined && game.price !== null) ? `€${game.price.toFixed(2)}` : '';
-            document.getElementById('gameTypeLabel').textContent = (game.genre || game.type || 'Action');
+            descElem.textContent = game.description?.trim() ? game.description : '';
+
+            document.getElementById('gameDetailsPrice').textContent =
+                (game.price != null) ? `€${game.price.toFixed(2)}` : '';
+
+            document.getElementById('gameTypeLabel').textContent =
+                game.genre || game.type || 'Action';
             const typeMeta = document.getElementById('gameTypeLabelMeta');
-            if (typeMeta) typeMeta.textContent = (game.genre || game.type || 'Action');
+            if (typeMeta) typeMeta.textContent = game.genre || game.type || 'Action';
+
             let icon = '🎮';
-            if (game.genre && game.genre.toLowerCase().includes('rpg')) icon = '🛡️';
-            else if (game.genre && game.genre.toLowerCase().includes('action')) icon = '⚔️';
-            else if (game.genre && game.genre.toLowerCase().includes('strategy')) icon = '♟️';
-            else if (game.genre && game.genre.toLowerCase().includes('adventure')) icon = '🗺️';
+            const g = (game.genre || '').toLowerCase();
+            if (g.includes('rpg')) icon = '🛡️';
+            else if (g.includes('action')) icon = '⚔️';
+            else if (g.includes('strategy')) icon = '♟️';
+            else if (g.includes('adventure')) icon = '🗺️';
             document.getElementById('gameTypeIcon').textContent = icon;
             document.getElementById('gameReleaseDate').textContent = game.release_date || 'TBA';
             document.getElementById('gamePublisher').textContent = game.publisher || 'Unknown';
             document.getElementById('gameStatus').textContent = game.status || 'Available';
+
+            // Helper to get JWT token from localStorage or cookie (support both 'jwt_token' and 'jwt')
+            function getJwtToken() {
+                let token = localStorage.getItem('jwt_token');
+                if (token) return token;
+                // Try jwt_token cookie
+                let match = document.cookie.match(/(?:^|; )jwt_token=([^;]*)/);
+                if (match) return decodeURIComponent(match[1]);
+                // Try jwt cookie (this is what backend sets)
+                match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+                if (match) return decodeURIComponent(match[1]);
+                return null;
+            }
+
+            // Add to Cart button logic (remade for reliability)
+            const addToCartBtn = document.getElementById('addToCartBtn');
+            if (addToCartBtn) {
+                // Remove any previous event listeners by replacing the button
+                const newBtn = addToCartBtn.cloneNode(true);
+                addToCartBtn.parentNode.replaceChild(newBtn, addToCartBtn);
+                newBtn.disabled = false;
+                newBtn.style.pointerEvents = 'auto';
+                newBtn.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    if (newBtn.disabled) return;
+                    // Visual feedback: show loading state
+                    const originalText = newBtn.textContent;
+                    newBtn.textContent = 'Adding...';
+                    newBtn.disabled = true;
+                    newBtn.classList.add('loading');
+                    const token = getJwtToken();
+                    if (!token) {
+                        showCartErrorPopup('You must be logged in to add to cart.');
+                        newBtn.textContent = originalText;
+                        newBtn.disabled = false;
+                        newBtn.classList.remove('loading');
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`${BASE_URL}/api/cart`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ game_id: gameId })
+                        });
+                        const data = await response.json();
+                        if (!response.ok) {
+                            showCartErrorPopup(data.error || 'Failed to add to cart.');
+                        } else {
+                            showCartSuccessPopup('Game added to cart!');
+                        }
+                    } catch (err) {
+                        showCartErrorPopup('Failed to add to cart.');
+                    }
+                    newBtn.textContent = originalText;
+                    newBtn.disabled = false;
+                    newBtn.classList.remove('loading');
+                });
+            }
         });
 });
+
+function showCartSuccessPopup(msg) {
+    const popup = document.createElement('div');
+    popup.className = 'registration-complete-popup';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <svg width="48" height="48" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="12" fill="#1ba9ff"/>
+                <path d="M7 13l3 3 7-7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="popup-title">Success</div>
+            <div class="popup-msg">${msg}</div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.classList.add('show'), 10);
+    setTimeout(() => { popup.classList.remove('show'); setTimeout(() => popup.remove(), 400); }, 2400);
+}
+
+function showCartErrorPopup(msg) {
+    const popup = document.createElement('div');
+    popup.className = 'registration-complete-popup';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <svg width="48" height="48" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="12" fill="#ff6f61"/>
+                <path d="M12 8v4m0 4h.01" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="popup-title">Error</div>
+            <div class="popup-msg">${msg}</div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.classList.add('show'), 10);
+    setTimeout(() => { popup.classList.remove('show'); setTimeout(() => popup.remove(), 400); }, 2400);
+}

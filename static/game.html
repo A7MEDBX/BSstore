@@ -22,6 +22,9 @@
         <div class="header-right">
             <a href="login.html" id="loginBtn" class="header-login-btn">Login</a>
             <button id="registerBtn">Register</button>
+            <a href="cart.html" id="cartIcon" class="header-cart-icon">
+                <img src="images/cart-icon.png" alt="Cart" />
+            </a>
             <div class="header-user-menu" id="headerUserMenu" style="display: none;">
                 <button class="user-menu-btn" id="userMenuBtn">
                     <span class="user-avatar" id="userAvatar">A</span>
@@ -99,5 +102,98 @@
         }
     });
     </script>
+    
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (!addToCartBtn) return;
+    // Get gameId from URL param (same as in game.js)
+    function getQueryParam(name) {
+        const url = new URL(window.location.href);
+        return url.searchParams.get(name);
+    }
+    const gameId = getQueryParam('id');
+    // Get JWT token from localStorage or cookie (support both 'jwt_token' and 'jwt')
+    function getJwtToken() {
+        let token = localStorage.getItem('jwt_token');
+        if (token) return token;
+        // Try jwt_token cookie
+        let match = document.cookie.match(/(?:^|; )jwt_token=([^;]*)/);
+        if (match) return decodeURIComponent(match[1]);
+        // Try jwt cookie (this is what backend sets)
+        match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+        if (match) return decodeURIComponent(match[1]);
+        return null;
+    }
+    addToCartBtn.addEventListener('click', async () => {
+        const token = getJwtToken();
+        if (!token) {
+            showCartErrorPopup('You must be logged in to add to cart.');
+            return;
+        }
+        addToCartBtn.disabled = true;
+        const originalText = addToCartBtn.textContent;
+        addToCartBtn.textContent = 'Adding...';
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ game_id: gameId })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                showCartErrorPopup(data.error || 'Failed to add to cart.');
+            } else {
+                showCartSuccessPopup('Game added to cart!');
+            }
+        } catch (err) {
+            showCartErrorPopup('Failed to add to cart.');
+        }
+        addToCartBtn.disabled = false;
+        addToCartBtn.textContent = originalText;
+    });
+
+    // Modern popup functions (copied from game.js for inline use)
+    window.showCartSuccessPopup = function(msg) {
+        let popup = document.createElement('div');
+        popup.className = 'registration-complete-popup';
+        popup.innerHTML = `
+            <div class="popup-content">
+                <svg width="48" height="48" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="12" fill="#1ba9ff"/>
+                    <path d="M7 13l3 3 7-7" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="popup-title">Success</div>
+                <div class="popup-msg">${msg}</div>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        setTimeout(() => { popup.classList.add('show'); }, 10);
+        setTimeout(() => { popup.classList.remove('show'); setTimeout(()=>popup.remove(), 400); }, 2400);
+    }
+    window.showCartErrorPopup = function(msg) {
+        let popup = document.createElement('div');
+        popup.className = 'registration-complete-popup';
+        popup.innerHTML = `
+            <div class="popup-content">
+                <svg width="48" height="48" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="12" fill="#ff6f61"/>
+                    <path d="M12 8v4m0 4h.01" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="popup-title">Error</div>
+                <div class="popup-msg">${msg}</div>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        setTimeout(() => { popup.classList.add('show'); }, 10);
+        setTimeout(() => { popup.classList.remove('show'); setTimeout(()=>popup.remove(), 400); }, 2400);
+    }
+});
+</script>
+
+
 </body>
 </html>

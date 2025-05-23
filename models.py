@@ -147,3 +147,10 @@ class Offer(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     game = db.relationship('Game', backref=db.backref('offers', lazy=True))
+
+class CartItem(db.Model):
+    __tablename__ = 'cart_item'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)

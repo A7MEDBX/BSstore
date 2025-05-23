@@ -981,3 +981,54 @@ footer {
     box-shadow: 0 2px 12px #bca97a44;
     opacity: 1;
 }
+
+/* Centered modern popup for cart and login errors */
+.registration-complete-popup, .login-required-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background: none;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.registration-complete-popup .popup-content, .login-required-popup .popup-content {
+    background: #23262e;
+    color: #fff;
+    border-radius: 16px;
+    padding: 32px 36px 28px 36px;
+    box-shadow: 0 8px 32px #000a;
+    text-align: center;
+    min-width: 320px;
+    max-width: 90vw;
+    pointer-events: all;
+    animation: popup-fade-in 0.3s;
+}
+.registration-complete-popup.show, .login-required-popup.show {
+    opacity: 1;
+    pointer-events: all;
+    transition: opacity 0.3s;
+}
+.registration-complete-popup, .login-required-popup {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.popup-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 16px 0 8px 0;
+}
+.popup-msg {
+    font-size: 1.08em;
+    margin-bottom: 0;
+    color: #fff;
+}
+@keyframes popup-fade-in {
+    from { opacity: 0; transform: translate(-50%, -60%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}

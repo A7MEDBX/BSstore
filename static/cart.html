@@ -46,7 +46,15 @@
     </header>
     <main>
         <h1>Your Cart</h1>
-        <!-- Cart contents will be dynamically generated here -->
+        <section id="cart-container">
+            <div id="cart-items">
+                <!-- Cart items will be dynamically inserted here -->
+            </div>
+            <div id="cart-summary">
+                <p>Total: <span id="cart-total">$0.00</span></p>
+                <button id="checkout-btn">Checkout</button>
+            </div>
+        </section>
     </main>
     <footer>
         <p>&copy; 2023 YourStore. All rights reserved.</p>
