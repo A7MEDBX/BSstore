@@ -227,28 +227,88 @@ document.addEventListener('DOMContentLoaded', function() {
                 return null;
             }
 
-            // Add to Cart button logic (remade for reliability)
-            const addToCartBtn = document.getElementById('addToCartBtn');
-            if (addToCartBtn) {
-                // Remove any previous event listeners by replacing the button
-                const newBtn = addToCartBtn.cloneNode(true);
-                addToCartBtn.parentNode.replaceChild(newBtn, addToCartBtn);
-                newBtn.disabled = false;
-                newBtn.style.pointerEvents = 'auto';
-                newBtn.addEventListener('click', async function (e) {
+            // --- BUY NOW BUTTON LOGIC ---
+            // (No redeclaration, just patch the event handler)
+            if (buyNowBtn) {
+                buyNowBtn.replaceWith(buyNowBtn.cloneNode(true));
+                const patchedBuyNowBtn = document.getElementById('buyNowBtn');
+                patchedBuyNowBtn.disabled = false;
+                patchedBuyNowBtn.style.pointerEvents = 'auto';
+                patchedBuyNowBtn.addEventListener('click', async function (e) {
                     e.preventDefault();
-                    if (newBtn.disabled) return;
-                    // Visual feedback: show loading state
-                    const originalText = newBtn.textContent;
-                    newBtn.textContent = 'Adding...';
-                    newBtn.disabled = true;
-                    newBtn.classList.add('loading');
+                    const token = getJwtToken();
+                    if (!token) {
+                        showCartErrorPopup('You must be logged in to purchase.');
+                        return;
+                    }
+                    // --- STRICT: Check if game is already in user's library using game.id and game_id as string and number ---
+                    let alreadyOwned = false;
+                    try {
+                        const libRes = await fetch(`${BASE_URL}/api/userlibrary`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (libRes.ok) {
+                            const libData = await libRes.json();
+                            alreadyOwned = Array.isArray(libData) && libData.some(g => g.id == game.id || g.game_id == game.id || String(g.id) === String(game.id) || String(g.game_id) === String(game.id));
+                        }
+                    } catch (err) {console.error('Library check failed', err);}
+                    if (alreadyOwned) {
+                        showCartErrorPopup('You already own this game in your library.');
+                        return;
+                    }
+                    // Compose a cart-like item for this game only
+                    const singleGameCartItem = [{
+                        game_id: game.id,
+                        title: game.title,
+                        publisher: game.publisher,
+                        price: game.price,
+                        image_url: game.image_url || (game.images && game.images[0]) || 'images/games/default.jpg',
+                    }];
+                    if (typeof window.showOrderSummaryPopup === 'function') {
+                        window.showOrderSummaryPopup(singleGameCartItem);
+                    } else {
+                        showCartErrorPopup('Order popup is not available. Please reload the page.');
+                    }
+                });
+            }
+
+            // Add to Cart button logic (remade for reliability)
+            if (addToCartBtn) {
+                addToCartBtn.replaceWith(addToCartBtn.cloneNode(true));
+                const patchedAddToCartBtn = document.getElementById('addToCartBtn');
+                patchedAddToCartBtn.disabled = false;
+                patchedAddToCartBtn.style.pointerEvents = 'auto';
+                patchedAddToCartBtn.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    if (patchedAddToCartBtn.disabled) return;
+                    const originalText = patchedAddToCartBtn.textContent;
+                    patchedAddToCartBtn.textContent = 'Adding...';
+                    patchedAddToCartBtn.disabled = true;
+                    patchedAddToCartBtn.classList.add('loading');
                     const token = getJwtToken();
                     if (!token) {
                         showCartErrorPopup('You must be logged in to add to cart.');
-                        newBtn.textContent = originalText;
-                        newBtn.disabled = false;
-                        newBtn.classList.remove('loading');
+                        patchedAddToCartBtn.textContent = originalText;
+                        patchedAddToCartBtn.disabled = false;
+                        patchedAddToCartBtn.classList.remove('loading');
+                        return;
+                    }
+                    // --- STRICT: Check if game is already in user's library using game.id and game_id as string and number ---
+                    let alreadyOwned = false;
+                    try {
+                        const libRes = await fetch(`${BASE_URL}/api/userlibrary`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (libRes.ok) {
+                            const libData = await libRes.json();
+                            alreadyOwned = Array.isArray(libData) && libData.some(g => g.id == game.id || g.game_id == game.id || String(g.id) === String(game.id) || String(g.game_id) === String(game.id));
+                        }
+                    } catch (err) {console.error('Library check failed', err);}
+                    if (alreadyOwned) {
+                        showCartErrorPopup('You already own this game in your library.');
+                        patchedAddToCartBtn.textContent = originalText;
+                        patchedAddToCartBtn.disabled = false;
+                        patchedAddToCartBtn.classList.remove('loading');
                         return;
                     }
                     try {
@@ -270,9 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     } catch (err) {
                         showCartErrorPopup('Failed to add to cart.');
                     }
-                    newBtn.textContent = originalText;
-                    newBtn.disabled = false;
-                    newBtn.classList.remove('loading');
+                    patchedAddToCartBtn.textContent = originalText;
+                    patchedAddToCartBtn.disabled = false;
+                    patchedAddToCartBtn.classList.remove('loading');
                 });
             }
 
@@ -316,11 +376,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 buyNowBtn.parentNode.replaceChild(newBuyBtn, buyNowBtn);
                 newBuyBtn.disabled = false;
                 newBuyBtn.style.pointerEvents = 'auto';
-                newBuyBtn.addEventListener('click', function (e) {
+                newBuyBtn.addEventListener('click', async function (e) {
                     e.preventDefault();
                     const token = getJwtToken();
                     if (!token) {
                         showCartErrorPopup('You must be logged in to purchase.');
+                        return;
+                    }
+                    // --- STRICT: Check if game is already in user's library using game.id and game_id as string and number ---
+                    let alreadyOwned = false;
+                    try {
+                        const libRes = await fetch(`${BASE_URL}/api/userlibrary`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (libRes.ok) {
+                            const libData = await libRes.json();
+                            alreadyOwned = Array.isArray(libData) && libData.some(g => g.id == game.id || g.game_id == game.id || String(g.id) === String(game.id) || String(g.game_id) === String(game.id));
+                        }
+                    } catch (err) {console.error('Library check failed', err);}
+                    if (alreadyOwned) {
+                        showCartErrorPopup('You already own this game in your library.');
                         return;
                     }
                     // Compose a cart-like item for this game only

@@ -436,6 +436,10 @@ def get_userlibrary():
 @login_required
 def create_userlibrary():
     data = request.json
+    # Prevent duplicate: check if already in library
+    exists = UserLibrary.query.filter_by(user_id=data['user_id'], game_id=data['game_id']).first()
+    if exists:
+        return jsonify({'error': 'You already own this game in your library.'}), 409
     entry = UserLibrary(user_id=data['user_id'], game_id=data['game_id'], playtime=data.get('playtime'))
     db.session.add(entry)
     db.session.commit()
@@ -585,6 +589,9 @@ def add_to_cart():
         game_id = data.get('game_id')
         if not game_id:
             return jsonify({'error': 'game_id is required'}), 400
+        # Check if already in library
+        if UserLibrary.query.filter_by(user_id=request.user_id, game_id=game_id).first():
+            return jsonify({'error': 'You already own this game in your library.'}), 409
         # Check if already in cart
         cart_item = CartItem.query.filter_by(user_id=request.user_id, game_id=game_id).first()
         if cart_item:
