@@ -22,6 +22,49 @@ function getJwtToken() {
     return null;
 }
 
+let genres = [];
+let filters = {
+    keyword: '',
+    genre: [],
+    show: 'recent',
+};
+
+async function fetchGenres() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/genres`);
+        const data = await res.json();
+        genres = Array.isArray(data) ? data : [];
+        renderGenreFilters();
+    } catch {
+        genres = [];
+    }
+}
+
+function renderGenreFilters() {
+    const filterGenre = document.getElementById('filterGenre');
+    if (!filterGenre) return;
+    filterGenre.innerHTML = '';
+    genres.forEach(genre => {
+        const label = document.createElement('label');
+        label.className = 'sidebar-checkbox-label';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = genre;
+        input.checked = filters.genre.includes(genre);
+        input.addEventListener('change', () => {
+            if (input.checked) filters.genre.push(genre);
+            else filters.genre = filters.genre.filter(g => g !== genre);
+            loadLibrary(
+                document.getElementById('librarySortDropdown').value,
+                document.getElementById('librarySearchInput').value
+            );
+        });
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(genre));
+        filterGenre.appendChild(label);
+    });
+}
+
 async function fetchUserLibrary() {
     const token = getJwtToken();
     if (!token) return [];
@@ -44,15 +87,11 @@ function renderLibraryGames(games) {
         const card = document.createElement('div');
         card.className = 'library-game-card';
         card.innerHTML = `
-            <div class="library-game-content">
-                <img src="${game.image_url || 'images/games/default.jpg'}" alt="${game.title}" class="library-game-img">
-                <div class="library-game-info">
-                    <div class="library-game-title">${game.title}</div>
-                    <div class="library-game-achievements">${game.achievements || 0} Achievements</div>
-                    <div class="library-game-install"><span class="material-icons">download</span> Install</div>
-                </div>
-                ${game.addon ? `<div class="library-game-addon">${game.addon}</div>` : ''}
-            </div>
+            <img src="${game.image_url || 'images/games/default.jpg'}" alt="${game.title}" class="library-game-img">
+            <div class="library-game-title">${game.title}</div>
+            <div class="library-game-achievements">0/${game.achievements || 0} Achievements</div>
+            <div class="library-game-install"><span class="material-icons">download</span> Install</div>
+            ${game.addon ? `<div class="library-game-addon">${game.addon}</div>` : ''}
         `;
         grid.appendChild(card);
     });
@@ -60,6 +99,10 @@ function renderLibraryGames(games) {
 
 async function loadLibrary(sort = 'recent', search = '') {
     let games = await fetchUserLibrary();
+    // Filter by genre
+    if (filters.genre.length) {
+        games = games.filter(g => filters.genre.includes(g.genre));
+    }
     // Fake sort/search for now (backend can be improved later)
     if (search) {
         games = games.filter(g => g.title.toLowerCase().includes(search.toLowerCase()));
@@ -73,6 +116,7 @@ async function loadLibrary(sort = 'recent', search = '') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    fetchGenres();
     // Initial load
     loadLibrary();
     // Sort dropdown
