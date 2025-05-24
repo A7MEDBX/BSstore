@@ -65,10 +65,7 @@
                     <option value="za">Z-A</option>
                 </select>
             </div>
-            <div class="library-view-toggle">
-                <button id="gridViewBtn" class="view-btn active"><span class="material-icons">grid_view</span></button>
-                <button id="listViewBtn" class="view-btn"><span class="material-icons">view_list</span></button>
-            </div>
+          
         </div>
         <div class="library-content-row">
             <div class="library-games-grid" id="libraryGamesGrid">
@@ -94,5 +91,62 @@
         <div class="footer-bottom">&copy; 2025 BSstore. All rights reserved.</div>
     </footer>
     <script src="library.js"></script>
+    <script>
+    // --- NAVBAR USER STATE LOGIC ---
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    function updateHeaderUserMenu() {
+        const userCookie = getCookie('user');
+        const headerUserMenu = document.getElementById('headerUserMenu');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        if (userCookie) {
+            const user = JSON.parse(decodeURIComponent(userCookie));
+            document.getElementById('userName').textContent = user.username;
+            document.getElementById('userAvatar').textContent = user.username[0].toUpperCase();
+            headerUserMenu.style.display = 'flex';
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (registerBtn) registerBtn.style.display = 'none';
+        } else {
+            headerUserMenu.style.display = 'none';
+            if (loginBtn) loginBtn.style.display = '';
+            if (registerBtn) registerBtn.style.display = '';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        updateHeaderUserMenu();
+        // Dropdown logic
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+        if (userMenuBtn && userDropdown) {
+            userMenuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = userDropdown.style.display === 'block';
+                userDropdown.style.display = isOpen ? 'none' : 'block';
+                userMenuBtn.classList.toggle('active', !isOpen);
+            });
+            document.addEventListener('click', function() {
+                userDropdown.style.display = 'none';
+                userMenuBtn.classList.remove('active');
+            });
+            userDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        // Sign out logic
+        const signOutBtn = document.getElementById('signOutBtn');
+        if (signOutBtn) {
+            signOutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00; path=/;";
+                document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                window.location.reload();
+            });
+        }
+    });
+    </script>
 </body>
 </html>
