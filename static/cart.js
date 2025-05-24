@@ -319,10 +319,249 @@ function showPopupMessage(message, type) {
     }, 3000); // Remove popup after 3 seconds
 }
 
-// Ensure user data is loaded from cookies and login header is displayed dynamically
+// --- POPUP ORDER SUMMARY & PLACE ORDER LOGIC ---
+function showOrderSummaryPopup(cartItems) {
+    // Remove any existing popup
+    const old = document.getElementById('orderSummaryPopup');
+    if (old) old.remove();
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'orderSummaryPopup';
+    overlay.style.position = 'fixed';
+    overlay.style.top = 0;
+    overlay.style.left = 0;
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(0,0,0,0.45)';
+    overlay.style.zIndex = 9999;
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+
+    // Popup box
+    const box = document.createElement('div');
+    box.style.background = '#fff';
+    box.style.borderRadius = '16px';
+    box.style.width = '410px';
+    box.style.maxWidth = '95vw';
+    box.style.maxHeight = '90vh';
+    box.style.overflowY = 'auto';
+    box.style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)';
+    box.style.padding = '0 0 24px 0';
+    box.style.position = 'relative';
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '18px';
+    closeBtn.style.right = '22px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.fontSize = '1.7em';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.onclick = () => overlay.remove();
+    box.appendChild(closeBtn);
+
+    // Title
+    const title = document.createElement('div');
+    title.textContent = 'ORDER SUMMARY';
+    title.style.fontWeight = 'bold';
+    title.style.fontSize = '1.13em';
+    title.style.letterSpacing = '0.04em';
+    title.style.padding = '28px 28px 8px 28px';
+    box.appendChild(title);
+
+    // Games list (all games, each with details)
+    cartItems.forEach(item => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '18px';
+        row.style.padding = '12px 28px 0 28px';
+        const img = document.createElement('img');
+        img.src = item.image_url || item.image || 'static/images/games/default.jpg';
+        img.style.width = '72px';
+        img.style.height = '72px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '8px';
+        row.appendChild(img);
+        const info = document.createElement('div');
+        info.style.flex = '1';
+        info.innerHTML = `
+            <div style="font-weight:600;font-size:1.08em;">${item.title}</div>
+            <div style="color:#666;font-size:0.98em;">${item.publisher || ''}</div>
+            <div style="margin:6px 0 0 0;">
+                <span style="background:#1a9fff;color:#fff;font-size:0.85em;padding:2px 8px;border-radius:6px;font-weight:600;">-100%</span>
+                <span style="color:#888;text-decoration:line-through;margin-left:8px;">${item.price ? '$' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : ''}</span>
+                <span style="color:#222;font-weight:600;margin-left:8px;">$0.00</span>
+            </div>
+        `;
+        row.appendChild(info);
+        box.appendChild(row);
+    });
+
+    // Divider
+    const divider = document.createElement('div');
+    divider.style.height = '1px';
+    divider.style.background = '#eee';
+    divider.style.margin = '18px 0 0 0';
+    box.appendChild(divider);
+
+    // Price summary
+    let total = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
+    const priceBox = document.createElement('div');
+    priceBox.style.padding = '18px 28px 0 28px';
+    priceBox.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:1em;"><span>Price</span><span>$${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
+    box.appendChild(priceBox);
+    // Sale Discount
+    const discountBox = document.createElement('div');
+    discountBox.style.padding = '8px 28px 0 28px';
+    discountBox.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:1em;"><span>Sale Discount</span><span>-$${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
+    box.appendChild(discountBox);
+    // Total
+    const totalBox = document.createElement('div');
+    totalBox.style.padding = '8px 28px 0 28px';
+    totalBox.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:1.1em;font-weight:700;"><span>Total</span><span>$0.00</span></div>`;
+    box.appendChild(totalBox);
+
+    // Rewards info
+    const rewardsBox = document.createElement('div');
+    rewardsBox.style.background = '#f5f6fa';
+    rewardsBox.style.margin = '18px 28px 0 28px';
+    rewardsBox.style.padding = '12px 14px';
+    rewardsBox.style.borderRadius = '8px';
+    rewardsBox.style.fontSize = '0.98em';
+    rewardsBox.innerHTML = `<span style="color:#222;">Earn <b>$0.00</b> in Epic Rewards with this purchase.</span>`;
+    box.appendChild(rewardsBox);
+
+    // Help link (no email agreement for all games)
+    const helpBox = document.createElement('div');
+    helpBox.style.margin = '18px 28px 0 28px';
+    helpBox.style.fontSize = '0.97em';
+    helpBox.innerHTML = `<div style="margin-top:0;color:#888;font-size:0.97em;">Need Help? <a href="#" style="color:#0074e4;text-decoration:underline;">Contact Us</a></div>`;
+    box.appendChild(helpBox);
+
+    // Place Order button
+    const placeOrderBtn = document.createElement('button');
+    placeOrderBtn.textContent = 'PLACE ORDER';
+    placeOrderBtn.style.margin = '24px auto 0 auto';
+    placeOrderBtn.style.display = 'block';
+    placeOrderBtn.style.width = '90%';
+    placeOrderBtn.style.background = '#0074e4';
+    placeOrderBtn.style.color = '#fff';
+    placeOrderBtn.style.fontWeight = 'bold';
+    placeOrderBtn.style.fontSize = '1.1em';
+    placeOrderBtn.style.border = 'none';
+    placeOrderBtn.style.borderRadius = '8px';
+    placeOrderBtn.style.padding = '14px 0';
+    placeOrderBtn.style.cursor = 'pointer';
+    placeOrderBtn.style.transition = 'background 0.2s';
+    placeOrderBtn.onmouseover = () => placeOrderBtn.style.background = '#005bb5';
+    placeOrderBtn.onmouseout = () => placeOrderBtn.style.background = '#0074e4';
+    box.appendChild(placeOrderBtn);
+
+    // Place order logic
+    placeOrderBtn.onclick = async () => {
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.textContent = 'Processing...';
+        const token = getToken();
+        let userId = null;
+        // Try to get userId from /api/me
+        try {
+            const res = await fetch(`${BASE_URL}/api/me`, { headers: { 'Authorization': 'Bearer ' + token } });
+            if (res.ok) {
+                const user = await res.json();
+                userId = user.id;
+            }
+        } catch {}
+        if (!userId) {
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.textContent = 'PLACE ORDER';
+            showPopupMessage('Login required', 'error');
+            return;
+        }
+        // Add each game to user library
+        let allSuccess = true;
+        for (const item of cartItems) {
+            const resp = await fetch(`${BASE_URL}/api/userlibrary`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ user_id: userId, game_id: item.game_id })
+            });
+            if (!resp.ok) allSuccess = false;
+        }
+        // Remove all games from cart after order
+        for (const item of cartItems) {
+            await fetch(`${BASE_URL}/api/cart/${item.game_id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+        }
+        if (allSuccess) {
+            showPopupMessage('Order placed! Games added to your library.', 'success');
+            overlay.remove();
+            fetchCartItems();
+        } else {
+            showPopupMessage('Some games could not be added.', 'error');
+        }
+    };
+
+    document.body.appendChild(overlay);
+    overlay.appendChild(box);
+}
+window.showOrderSummaryPopup = showOrderSummaryPopup;
+
+// --- Attach to checkout button ---
+function attachCheckoutButtonHandler() {
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (!checkoutBtn) return;
+    if (checkoutBtn._handlerAttached) return; // Prevent double-attach
+    checkoutBtn._handlerAttached = true;
+    checkoutBtn.onclick = async function(e) {
+        console.log('Checkout button clicked');
+        e.preventDefault();
+        const token = getToken();
+        if (!token) {
+            showPopupMessage('Login required', 'error');
+            return;
+        }
+        try {
+            const response = await fetch(`${BASE_URL}/api/cart`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch cart');
+            const cartData = await response.json();
+            const items = cartData.items || [];
+            if (!items.length) {
+                showPopupMessage('Your cart is empty.', 'error');
+                return;
+            }
+            showOrderSummaryPopup(items);
+        } catch (err) {
+            showPopupMessage('Failed to load cart.', 'error');
+        }
+    };
+}
+
+function robustCheckoutButtonAttach() {
+    attachCheckoutButtonHandler();
+    // MutationObserver for dynamic DOM changes
+    const observer = new MutationObserver(() => {
+        attachCheckoutButtonHandler();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    // Fallback: interval
+    let tries = 0;
+    const interval = setInterval(() => {
+        attachCheckoutButtonHandler();
+        tries++;
+        if (tries > 10) clearInterval(interval);
+    }, 500);
+}
+
 window.onload = function() {
-    // Update header user menu based on cookies
     initCartHeader();
-    // Fetch and render cart items after initializing the header
     fetchCartItems();
+    robustCheckoutButtonAttach();
 };

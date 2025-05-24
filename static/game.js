@@ -302,6 +302,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
+
+            // --- BUY NOW BUTTON LOGIC ---
+            const buyNowBtn = document.getElementById('buyNowBtn');
+            if (buyNowBtn) {
+                // Remove any previous event listeners by replacing the button
+                const newBuyBtn = buyNowBtn.cloneNode(true);
+                buyNowBtn.parentNode.replaceChild(newBuyBtn, buyNowBtn);
+                newBuyBtn.disabled = false;
+                newBuyBtn.style.pointerEvents = 'auto';
+                newBuyBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const token = getJwtToken();
+                    if (!token) {
+                        showCartErrorPopup('You must be logged in to purchase.');
+                        return;
+                    }
+                    // Compose a cart-like item for this game only
+                    const singleGameCartItem = [{
+                        game_id: game.id,
+                        title: game.title,
+                        publisher: game.publisher,
+                        price: game.price,
+                        image_url: game.image_url || (game.images && game.images[0]) || 'images/games/default.jpg',
+                    }];
+                    if (typeof window.showOrderSummaryPopup === 'function') {
+                        window.showOrderSummaryPopup(singleGameCartItem);
+                    } else {
+                        showCartErrorPopup('Order popup is not available. Please reload the page.');
+                    }
+                });
+            }
         });
 });
 
