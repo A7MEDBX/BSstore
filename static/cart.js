@@ -282,6 +282,13 @@ function renderCartItems(response) {
     attachRemoveHandlers();
 }
 
+// Update cart badge after cart changes
+async function updateCartBadgeAfterChange() {
+    const token = getToken();
+    if (token) await updateCartBadgeBackend(token);
+}
+
+// Patch attachRemoveHandlers to update header and badge after removal
 function attachRemoveHandlers() {
     const removeButtons = document.querySelectorAll('.cart-item-modern-remove');
     removeButtons.forEach(button => {
@@ -289,23 +296,20 @@ function attachRemoveHandlers() {
             const gameId = e.target.dataset.id;
             await removeCartItem(gameId);
             showPopupMessage('Game removed from cart', 'success');
-            fetchCartItems();
+            await fetchCartItems();
+            await updateCartBadgeAfterChange();
+            initCartHeader();
+            updateHeaderUserMenu();
         });
     });
 }
 
-async function removeCartItem(gameId) {
+function removeCartItem(gameId) {
     const token = getToken();
-    try {
-        const response = await fetch(`${BASE_URL}/api/cart/${gameId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) throw new Error('Failed to remove item');
-    } catch (error) {
-        console.error(error);
-        alert('Error removing item from cart.');
-    }
+    return fetch(`${BASE_URL}/api/cart/${gameId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
 }
 
 function showPopupMessage(message, type) {
@@ -502,6 +506,10 @@ function showOrderSummaryPopup(cartItems) {
             showPopupMessage('Order placed! Games added to your library.', 'success');
             overlay.remove();
             fetchCartItems();
+            // --- PATCH: update cart badge and header after checkout ---
+            initCartHeader();
+            updateHeaderUserMenu();
+            updateCartBadgeBackend(token);
         } else {
             showPopupMessage('Some games could not be added.', 'error');
         }
@@ -528,7 +536,7 @@ function attachCheckoutButtonHandler() {
         }
         try {
             const response = await fetch(`${BASE_URL}/api/cart`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             if (!response.ok) throw new Error('Failed to fetch cart');
             const cartData = await response.json();
@@ -562,6 +570,7 @@ function robustCheckoutButtonAttach() {
 
 window.onload = function() {
     initCartHeader();
+    updateHeaderUserMenu();
     fetchCartItems();
     robustCheckoutButtonAttach();
 };

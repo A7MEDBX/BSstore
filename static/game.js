@@ -35,8 +35,11 @@ function updateHeaderUserMenu() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Header login state
+    // Always update login state and cart header on load
     updateHeaderUserMenu();
+    if (typeof initCartHeader === 'function') {
+        initCartHeader();
+    }
 
     // Dropdown logic for user menu
     const userMenuBtn = document.getElementById('userMenuBtn');
@@ -262,6 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             showCartErrorPopup(data.error || 'Failed to add to cart.');
                         } else {
                             showCartSuccessPopup('Game added to cart!');
+                            updateCartHeaderBadge();
                         }
                     } catch (err) {
                         showCartErrorPopup('Failed to add to cart.');
@@ -296,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             showCartErrorPopup(data.error || 'Failed to remove from cart.');
                         } else {
                             showPopupMessage('Game removed from cart', 'success');
+                            updateCartHeaderBadge();
                         }
                     } catch (err) {
                         showCartErrorPopup('Failed to remove from cart.');
@@ -333,8 +338,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
+
+            // --- CART HEADER BADGE UPDATE ---
+            function updateCartHeaderBadge() {
+                const cartBadge = document.getElementById('cartBadge');
+                const token = localStorage.getItem('jwt_token') || (document.cookie.match(/(?:^|; )jwt=([^;]*)/) || [])[1];
+                if (!cartBadge) return;
+                if (!token) {
+                    cartBadge.style.display = 'none';
+                    return;
+                }
+                fetch(`${BASE_URL}/api/cart`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(res => res.ok ? res.json() : { items: [] })
+                .then(data => {
+                    if (data.items && data.items.length > 0) {
+                        cartBadge.textContent = data.items.length;
+                        cartBadge.style.display = 'inline-block';
+                    } else {
+                        cartBadge.style.display = 'none';
+                    }
+                })
+                .catch(() => {
+                    cartBadge.style.display = 'none';
+                });
+            }
+
+            // Call on page load
+            updateCartHeaderBadge();
         });
 });
+
+// After successful add to cart or remove from cart, also call:
+if (typeof initCartHeader === 'function') {
+    initCartHeader();
+}
 
 function showCartSuccessPopup(msg) {
     const popup = document.createElement('div');
