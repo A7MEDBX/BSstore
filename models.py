@@ -28,6 +28,7 @@ class Game(db.Model):
     approved = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(32), default='draft')  # New: draft, under_review, published, suspended
     price = db.Column(db.Float, nullable=True)  # New: price of the game
+    genre = db.Column(db.String(80), nullable=True)  # <-- Add this line
     categories = db.relationship('Category', secondary='game_category', back_populates='games')
 
 class Category(db.Model):

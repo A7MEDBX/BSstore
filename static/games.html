@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browse Games - YourStore</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="games.css">
+    <link rel="stylesheet" href="games.css?v=2">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body>
+<body style="min-height:100vh;display:flex;flex-direction:column;">
         <!-- Main Header Include -->
         <header class="main-header">
         <div class="header-left">
@@ -52,22 +52,16 @@
         </div>
     </header>
     <!--#include file="header.html" -->
-    <main class="eg-main">
+    <main class="eg-main" style="flex:1 0 auto;">
         <div class="eg-browse-header-row">
             <div class="eg-browse-tabs">
-                <input class="eg-search-bar" id="egSearchBar" placeholder="Search store" />
                 <span class="eg-browse-tab active">Discover</span>
-                <span class="eg-browse-tab">Browse</span>
-                <span class="eg-browse-tab">News</span>
+              
             </div>
         </div>
         <section class="eg-genres-section">
             <h1 class="eg-section-title">Popular Genres</h1>
-            <div class="eg-genres-carousel-wrapper">
-                <button class="eg-carousel-arrow left" aria-label="Scroll left">&#8249;</button>
-                <div class="eg-genres-carousel" id="genresCarousel"></div>
-                <button class="eg-carousel-arrow right" aria-label="Scroll right">&#8250;</button>
-            </div>
+            
         </section>
         <section class="eg-content-row">
             <aside class="eg-sidebar">
@@ -80,18 +74,21 @@
                     <input type="text" placeholder="Keywords" class="eg-filters-input" id="sidebarKeywordInput">
                 </div>
                 <div class="eg-filters-accordion">
-                    <div class="eg-filter-section">
-                        <button class="eg-accordion-btn active" data-filter="price">Price</button>
-                        <div class="eg-accordion-panel" id="filterPrice" style="display:block;"></div>
+                    <!-- Price Filter Accordion (fixed markup) -->
+                    <button type="button" class="eg-accordion-btn">Price</button>
+                    <div class="eg-accordion-panel">
+                        <div class="sidebar-slider-labels">
+                            <span id="priceMinLabel">$0</span>
+                            <span id="priceMaxLabel" style="float:right;">$200</span>
+                        </div>
+                        <input type="range" min="0" max="200" value="100" step="1" id="priceSlider" class="eg-slider">
+                        <div class="sidebar-slider-value">Up to <span id="priceSliderValue">$100</span></div>
                     </div>
                     <div class="eg-filter-section">
                         <button class="eg-accordion-btn active" data-filter="genre">Genre</button>
                         <div class="eg-accordion-panel" id="filterGenre" style="display:block;"></div>
                     </div>
-                    <div class="eg-filter-section">
-                        <button class="eg-accordion-btn active" data-filter="types">Types</button>
-                        <div class="eg-accordion-panel" id="filterTypes" style="display:block;"></div>
-                    </div>
+                 
                 </div>
             </aside>
             <div class="eg-content-left">
@@ -110,23 +107,21 @@
             </div>
         </section>
     </main>
-    <footer class="eg-footer">
-        <div class="eg-footer-main">
-            <span class="eg-footer-title">STORE</span>
-            <div class="eg-footer-socials">
-                <a href="#"><svg><!-- Facebook icon --></svg></a>
-                <a href="#"><svg><!-- X/Twitter icon --></svg></a>
-                <a href="#"><svg><!-- YouTube icon --></svg></a>
+    <footer class="eg-footer modern-footer">
+        <div class="footer-container">
+            <div class="footer-main-row">
+              
+                <div class="footer-links-row">
+                    <div class="footer-col"><div class="footer-col-title">Marketplaces</div><a href="#">Epic Games Store</a><a href="#">Ru</a></div>
+                    <div class="footer-col"><div class="footer-col-title">Online Services</div><a href="#">Epic Online Services</a></div>
+                    <div class="footer-col"><div class="footer-col-title">Company</div><a href="#">About</a><a href="#">Newsroom</a></div>
+                </div>
             </div>
-        </div>
-        <hr class="eg-footer-hr">
-        <div class="eg-footer-columns">
-            <div class="eg-footer-col"><div class="eg-footer-col-title">Games</div><a href="#">Fortnite</a><a href="#">Rocket League</a><a href="#">Fall Guys</a></div>
-            <div class="eg-footer-col"><div class="eg-footer-col-title">Marketplaces</div><a href="#">Epic Games Store</a><a href="#">Ru</a></div>
-            <div class="eg-footer-col"><div class="eg-footer-col-title">Tools</div><a href="#">Unreal Engine</a><a href="#">UEFN</a></div>
-            <div class="eg-footer-col"><div class="eg-footer-col-title">Online Services</div><a href="#">Epic Online Services</a></div>
-            <div class="eg-footer-col"><div class="eg-footer-col-title">Company</div><a href="#">About</a><a href="#">Newsroom</a></div>
-            <div class="eg-footer-col"><div class="eg-footer-col-title">Resources</div><a href="#">Dev Community</a></div>
+            <hr class="footer-hr">
+            <div class="footer-bottom-row">
+                <span class="footer-copyright">&copy; 2025 YourStore. All rights reserved.</span>
+                <span class="footer-legal-links"><a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></span>
+            </div>
         </div>
     </footer>
     <script src="games.js"></script>

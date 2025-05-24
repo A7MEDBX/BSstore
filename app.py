@@ -16,6 +16,7 @@ from cloudinary.utils import cloudinary_url
 from flask_swagger_ui import get_swaggerui_blueprint
 import random
 from models import db, User, Game, Category, Purchase, Review, UserLibrary, Friend, Wishlist, Achievement, GameAchievement, UserAchievement, Inventory, SupportTicket, GameImage, CartItem
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 CORS(app)
@@ -23,6 +24,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///steam_clone.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+migrate = Migrate(app, db)
 
 mail = Mail(app)
 
@@ -182,7 +184,8 @@ def get_games():
                 'download_url': g.download_url,
                 'approved': g.approved,
                 'status': g.status,
-                'price': g.price
+                'price': g.price,
+                'genre': g.genre  # <-- Add genre to API response
             } for g in games
         ])
     except Exception as e:
@@ -1293,6 +1296,12 @@ def resend_otp():
     msg.body = f'Your OTP code is: {otp}. It expires in 10 minutes.'
     mail.send(msg)
     return jsonify({'message': 'OTP resent.'})
+
+@app.route('/api/genres', methods=['GET'])
+def get_genres():
+    genres = db.session.query(Game.genre).filter(Game.genre != None).distinct().all()
+    genre_list = [g[0] for g in genres if g[0]]
+    return jsonify(genre_list)
 
 if __name__ == '__main__':
     with app.app_context():
