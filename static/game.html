@@ -216,6 +216,217 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
     </script>
 
+    <!-- --- BUY NOW POPUP CHECKOUT LOGIC --- -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const buyNowBtn = document.getElementById('buyNowBtn');
+        if (buyNowBtn) {
+            buyNowBtn.addEventListener('click', async function (e) {
+                e.preventDefault();
+                // Get gameId from URL param
+                function getQueryParam(name) {
+                    const url = new URL(window.location.href);
+                    return url.searchParams.get(name);
+                }
+                const gameId = getQueryParam('id');
+                // Get JWT token from localStorage or cookie
+                function getJwtToken() {
+                    let token = localStorage.getItem('jwt_token');
+                    if (token) return token;
+                    let match = document.cookie.match(/(?:^|; )jwt_token=([^;]*)/);
+                    if (match) return decodeURIComponent(match[1]);
+                    match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+                    if (match) return decodeURIComponent(match[1]);
+                    return null;
+                }
+                const token = getJwtToken();
+                if (!token) {
+                    window.showCartErrorPopup('You must be logged in to purchase.');
+                    return;
+                }
+                // Fetch game details for this game
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`);
+                    if (!response.ok) throw new Error('Failed to fetch game details');
+                    const game = await response.json();
+                    // Compose a cart-like item for this game only
+                    const singleGameCartItem = [{
+                        game_id: game.id,
+                        title: game.title,
+                        publisher: game.publisher,
+                        price: game.price,
+                        image_url: game.image_url || (game.images && game.images[0]) || 'images/games/default.jpg',
+                    }];
+                    // --- Inline showOrderSummaryPopup logic (copied/adapted from cart.js) ---
+                    function showOrderSummaryPopup(cartItems) {
+                        const old = document.getElementById('orderSummaryPopup');
+                        if (old) old.remove();
+                        const overlay = document.createElement('div');
+                        overlay.id = 'orderSummaryPopup';
+                        overlay.style.position = 'fixed';
+                        overlay.style.top = 0;
+                        overlay.style.left = 0;
+                        overlay.style.width = '100vw';
+                        overlay.style.height = '100vh';
+                        overlay.style.background = 'rgba(0,0,0,0.45)';
+                        overlay.style.zIndex = 9999;
+                        overlay.style.display = 'flex';
+                        overlay.style.alignItems = 'center';
+                        overlay.style.justifyContent = 'center';
+                        const box = document.createElement('div');
+                        box.style.background = '#fff';
+                        box.style.borderRadius = '16px';
+                        box.style.width = '410px';
+                        box.style.maxWidth = '95vw';
+                        box.style.maxHeight = '90vh';
+                        box.style.overflowY = 'auto';
+                        box.style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)';
+                        box.style.padding = '0 0 24px 0';
+                        box.style.position = 'relative';
+                        const closeBtn = document.createElement('button');
+                        closeBtn.textContent = '×';
+                        closeBtn.style.position = 'absolute';
+                        closeBtn.style.top = '18px';
+                        closeBtn.style.right = '22px';
+                        closeBtn.style.background = 'none';
+                        closeBtn.style.border = 'none';
+                        closeBtn.style.fontSize = '1.7em';
+                        closeBtn.style.cursor = 'pointer';
+                        closeBtn.onclick = () => overlay.remove();
+                        box.appendChild(closeBtn);
+                        const title = document.createElement('div');
+                        title.textContent = 'ORDER SUMMARY';
+                        title.style.fontWeight = 'bold';
+                        title.style.fontSize = '1.13em';
+                        title.style.letterSpacing = '0.04em';
+                        title.style.padding = '28px 28px 8px 28px';
+                        box.appendChild(title);
+                        cartItems.forEach(item => {
+                            const row = document.createElement('div');
+                            row.style.display = 'flex';
+                            row.style.alignItems = 'center';
+                            row.style.gap = '18px';
+                            row.style.padding = '12px 28px 0 28px';
+                            const img = document.createElement('img');
+                            img.src = item.image_url || item.image || 'static/images/games/default.jpg';
+                            img.style.width = '72px';
+                            img.style.height = '72px';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '8px';
+                            row.appendChild(img);
+                            const info = document.createElement('div');
+                            info.style.flex = '1';
+                            info.innerHTML = `
+                                <div style="font-weight:600;font-size:1.08em;">${item.title}</div>
+                                <div style="color:#666;font-size:0.98em;">${item.publisher || ''}</div>
+                                <div style="margin:6px 0 0 0;">
+                                    <span style="background:#1a9fff;color:#fff;font-size:0.85em;padding:2px 8px;border-radius:6px;font-weight:600;">-100%</span>
+                                    <span style="color:#888;text-decoration:line-through;margin-left:8px;">${item.price ? '$' + item.price.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : ''}</span>
+                                    <span style="color:#222;font-weight:600;margin-left:8px;">$0.00</span>
+                                </div>
+                            `;
+                            row.appendChild(info);
+                            box.appendChild(row);
+                        });
+                        const divider = document.createElement('div');
+                        divider.style.height = '1px';
+                        divider.style.background = '#eee';
+                        divider.style.margin = '18px 0 0 0';
+                        box.appendChild(divider);
+                        let total = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
+                        const priceBox = document.createElement('div');
+                        priceBox.style.padding = '18px 28px 0 28px';
+                        priceBox.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:1em;"><span>Price</span><span>$${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
+                        box.appendChild(priceBox);
+                        const discountBox = document.createElement('div');
+                        discountBox.style.padding = '8px 28px 0 28px';
+                        discountBox.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:1em;"><span>Sale Discount</span><span>-$${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>`;
+                        box.appendChild(discountBox);
+                        const totalBox = document.createElement('div');
+                        totalBox.style.padding = '8px 28px 0 28px';
+                        totalBox.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:1.1em;font-weight:700;"><span>Total</span><span>$0.00</span></div>`;
+                        box.appendChild(totalBox);
+                        const rewardsBox = document.createElement('div');
+                        rewardsBox.style.background = '#f5f6fa';
+                        rewardsBox.style.margin = '18px 28px 0 28px';
+                        rewardsBox.style.padding = '12px 14px';
+                        rewardsBox.style.borderRadius = '8px';
+                        rewardsBox.style.fontSize = '0.98em';
+                        rewardsBox.innerHTML = `<span style="color:#222;">Earn <b>$0.00</b> in Epic Rewards with this purchase.</span>`;
+                        box.appendChild(rewardsBox);
+                        const helpBox = document.createElement('div');
+                        helpBox.style.margin = '18px 28px 0 28px';
+                        helpBox.style.fontSize = '0.97em';
+                        helpBox.innerHTML = `<div style="margin-top:0;color:#888;font-size:0.97em;">Need Help? <a href="#" style="color:#0074e4;text-decoration:underline;">Contact Us</a></div>`;
+                        box.appendChild(helpBox);
+                        const placeOrderBtn = document.createElement('button');
+                        placeOrderBtn.textContent = 'PLACE ORDER';
+                        placeOrderBtn.style.margin = '24px auto 0 auto';
+                        placeOrderBtn.style.display = 'block';
+                        placeOrderBtn.style.width = '90%';
+                        placeOrderBtn.style.background = '#0074e4';
+                        placeOrderBtn.style.color = '#fff';
+                        placeOrderBtn.style.fontWeight = 'bold';
+                        placeOrderBtn.style.fontSize = '1.1em';
+                        placeOrderBtn.style.border = 'none';
+                        placeOrderBtn.style.borderRadius = '8px';
+                        placeOrderBtn.style.padding = '14px 0';
+                        placeOrderBtn.style.cursor = 'pointer';
+                        placeOrderBtn.style.transition = 'background 0.2s';
+                        placeOrderBtn.onmouseover = () => placeOrderBtn.style.background = '#005bb5';
+                        placeOrderBtn.onmouseout = () => placeOrderBtn.style.background = '#0074e4';
+                        box.appendChild(placeOrderBtn);
+                        placeOrderBtn.onclick = async () => {
+                            placeOrderBtn.disabled = true;
+                            placeOrderBtn.textContent = 'Processing...';
+                            let userId = null;
+                            try {
+                                const res = await fetch('http://127.0.0.1:5000/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+                                if (res.ok) {
+                                    const user = await res.json();
+                                    userId = user.id;
+                                }
+                            } catch {}
+                            if (!userId) {
+                                placeOrderBtn.disabled = false;
+                                placeOrderBtn.textContent = 'PLACE ORDER';
+                                window.showCartErrorPopup('Login required');
+                                return;
+                            }
+                            let allSuccess = true;
+                            for (const item of cartItems) {
+                                const resp = await fetch('http://127.0.0.1:5000/api/userlibrary', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                                    body: JSON.stringify({ user_id: userId, game_id: item.game_id })
+                                });
+                                if (!resp.ok) allSuccess = false;
+                            }
+                            for (const item of cartItems) {
+                                await fetch(`http://127.0.0.1:5000/api/cart/${item.game_id}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': 'Bearer ' + token }
+                                });
+                            }
+                            if (allSuccess) {
+                                window.showCartSuccessPopup('Order placed! Game added to your library.');
+                                overlay.remove();
+                            } else {
+                                window.showCartErrorPopup('Could not add game to library.');
+                            }
+                        };
+                        document.body.appendChild(overlay);
+                        overlay.appendChild(box);
+                    }
+                    showOrderSummaryPopup(singleGameCartItem);
+                } catch (err) {
+                    window.showCartErrorPopup('Failed to load game details.');
+                }
+            });
+        }
+    });
+    </script>
+
 
 </body>
 </html>
