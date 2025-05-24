@@ -427,8 +427,23 @@ def create_review():
 @login_required
 def get_userlibrary():
     try:
-        entries = UserLibrary.query.all()
-        return jsonify([{'id': e.id, 'user_id': e.user_id, 'game_id': e.game_id, 'playtime': e.playtime} for e in entries])
+        user_id = getattr(request, 'user_id', None)
+        if not user_id:
+            return jsonify({'error': 'User not authenticated'}), 401
+        entries = UserLibrary.query.filter_by(user_id=user_id).all()
+        # Join with Game to get game details
+        games = []
+        for e in entries:
+            game = Game.query.get(e.game_id)
+            if game:
+                games.append({
+                    'id': game.id,
+                    'title': game.title,
+                    'image_url': game.image_url,
+                    'achievements': 0,  # Placeholder, can be replaced with real count
+                    'addon': None,      # Placeholder, can be replaced with real add-on info
+                })
+        return jsonify(games)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

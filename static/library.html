@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library - BSstore</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="library.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-left">
+            <a href="index.html" class="logo" style="text-decoration:none;color:inherit;"><span class="logo">BSstore</span></a>
+            <nav>
+                <ul>
+                    <li><a href="games.html">Store</a></li>
+                    <li><a href="library.html" class="active">Library</a></li>
+                    <li><a href="#">Help</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="header-right">
+            <a href="login.html" id="loginBtn" class="header-login-btn">Login</a>
+            <button id="registerBtn">Register</button>
+            <span id="cartIconContainer" style="display:none;">
+                <a href="cart.html" id="cartIcon" class="header-cart-icon" style="margin:0 12px;">
+                    <span class="material-icons" style="font-size:28px;vertical-align:middle;color:#fff;">shopping_cart</span>
+                </a>
+            </span>
+            <div class="header-user-menu" id="headerUserMenu" style="display: none;">
+                <button class="user-menu-btn" id="userMenuBtn">
+                    <span class="user-avatar" id="userAvatar">A</span>
+                    <span class="user-name" id="userName"></span>
+                    <svg class="user-menu-arrow" width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="M7 10l5 5 5-5z"/></svg>
+                </button>
+                <div class="user-dropdown" id="userDropdown" style="display: none;">
+                    <ul>
+                        <li><a href="#">My Achievements</a></li>
+                        <li><a href="#">Epic Rewards</a></li>
+                        <li><a href="#">Epic Wallet</a></li>
+                        <li><a href="#">Coupons</a></li>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Redeem Code</a></li>
+                        <li><a href="#">Wishlist</a></li>
+                        <li><a href="#" id="signOutBtn">Sign Out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="library-main">
+        <div class="library-header-row">
+            <h1 class="library-title">Library <span class="material-icons refresh-icon" id="refreshLibraryBtn">refresh</span></h1>
+            <div class="library-tabs">
+                <span class="library-tab active">All</span>
+                <span class="library-tab">Favorites</span>
+                <span class="library-tab add-tab"><span class="material-icons">add</span></span>
+            </div>
+        </div>
+        <div class="library-controls-row">
+            <div class="library-sort">
+                <span>Sort by:</span>
+                <select id="librarySortDropdown">
+                    <option value="recent">Recently Purchased</option>
+                    <option value="az">A-Z</option>
+                    <option value="za">Z-A</option>
+                </select>
+            </div>
+            <div class="library-view-toggle">
+                <button id="gridViewBtn" class="view-btn active"><span class="material-icons">grid_view</span></button>
+                <button id="listViewBtn" class="view-btn"><span class="material-icons">view_list</span></button>
+            </div>
+        </div>
+        <div class="library-content-row">
+            <div class="library-games-grid" id="libraryGamesGrid">
+                <!-- Games will be loaded here -->
+            </div>
+            <div class="library-filters">
+                <span class="filters-title">Filters</span>
+                <div class="filters-search">
+                    <span class="material-icons">search</span>
+                    <input type="text" id="librarySearchInput" placeholder="Title">
+                </div>
+                <div class="filters-section">
+                    <div class="filters-section-title">Installed (1)</div>
+                </div>
+                <div class="filters-section">
+                    <div class="filters-section-title">Genre</div>
+                </div>
+                <div class="filters-section">
+                    <div class="filters-section-title">Features</div>
+                </div>
+                <div class="filters-section">
+                    <div class="filters-section-title">Types</div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="footer-links">
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+            <a href="#">Terms</a>
+            <a href="#">Privacy</a>
+        </div>
+        <div class="footer-bottom">&copy; 2025 BSstore. All rights reserved.</div>
+    </footer>
+    <script src="library.js"></script>
+</body>
+</html>

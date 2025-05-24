@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const saleCards = document.querySelector('.sale-cards');
             if (saleCards && Array.isArray(games)) {
                 saleCards.innerHTML = '';
-                games.forEach(game => {
+                games.slice(0, 8).forEach(game => {
                     const card = document.createElement('div');
                     card.className = 'sale-card';
                     card.innerHTML = `

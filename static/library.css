@@ -1,0 +1,281 @@
+/* library.css - Modern Epic Games Store style for library.html */
+body {
+    background: #10131a;
+    color: #fff;
+    min-height: 100vh;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.library-main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 40px 48px 40px;
+}
+.library-header-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-top: 32px;
+}
+.library-title {
+    font-size: 2.8em;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+.refresh-icon {
+    font-size: 1.1em;
+    margin-left: 10px;
+    cursor: pointer;
+    color: #bfc4ce;
+    transition: color 0.18s;
+}
+.refresh-icon:hover {
+    color: #1ba9ff;
+}
+.library-tabs {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-left: 32px;
+}
+.library-tab {
+    font-size: 1.15em;
+    font-weight: 600;
+    color: #bfc4ce;
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 8px 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border 0.2s;
+}
+.library-tab.active, .library-tab:hover {
+    color: #fff;
+    opacity: 1;
+    border-bottom: 2px solid #1ba9ff;
+}
+.library-tab.add-tab {
+    color: #1ba9ff;
+    font-size: 1.3em;
+    border: none;
+    background: none;
+    padding: 0 8px;
+    border-radius: 50%;
+    transition: background 0.18s;
+}
+.library-tab.add-tab:hover {
+    background: #23232a;
+}
+.library-controls-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+    margin: 32px 0 0 0;
+}
+.library-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.08em;
+    font-weight: 500;
+}
+.library-sort select {
+    background: #181a20;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 1em;
+    outline: none;
+}
+.library-view-toggle {
+    display: flex;
+    gap: 8px;
+    margin-left: 24px;
+}
+.view-btn {
+    background: #23232a;
+    color: #bfc4ce;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.3em;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.view-btn.active, .view-btn:hover {
+    background: #1ba9ff;
+    color: #fff;
+}
+.library-content-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+    margin-top: 32px;
+}
+.library-filters {
+    background: #181a20;
+    border-radius: 18px;
+    box-shadow: 0 2px 8px #0002;
+    padding: 24px 18px 18px 18px;
+    min-width: 260px;
+    max-width: 320px;
+    flex: 0 0 320px;
+    margin-left: 0;
+}
+.filters-title {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 12px;
+    color: #fff;
+}
+.filters-search {
+    display: flex;
+    align-items: center;
+    background: #23232a;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 38px;
+    margin-bottom: 12px;
+}
+.filters-search input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1em;
+    width: 100%;
+    outline: none;
+}
+.filters-section {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background: #20232b;
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.04);
+    overflow: hidden;
+    padding: 10px 12px;
+}
+.filters-section-title {
+    font-weight: 600;
+    color: #bfc4ce;
+    font-size: 1.05em;
+    margin-bottom: 2px;
+}
+.library-games-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px 12px;
+    margin: 0;
+    flex: 1 1 0%;
+    min-width: 0;
+}
+@media (max-width: 1200px) {
+    .library-games-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 900px) {
+    .library-content-row {
+        flex-direction: column;
+    }
+    .library-games-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .library-filters {
+        max-width: 100%;
+        margin: 32px 0 0 0;
+    }
+}
+@media (max-width: 600px) {
+    .library-games-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.library-game-card {
+    background: #181a20;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px #0002;
+    width: 180px;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 14px 0;
+    transition: transform 0.18s, box-shadow 0.18s;
+    cursor: pointer;
+    position: relative;
+}
+.library-game-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.library-game-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 16px 16px 0 0;
+    background: #23232a;
+}
+.library-game-title {
+    font-size: 1em;
+    font-weight: 700;
+    margin: 12px 0 0 0;
+    color: #fff;
+    text-align: left;
+    width: 90%;
+    word-break: break-word;
+}
+.library-game-achievements {
+    color: #bfc4ce;
+    font-size: 0.93em;
+    margin: 3px 0 0 0;
+    width: 90%;
+    text-align: left;
+}
+.library-game-install {
+    color: #1ba9ff;
+    font-size: 0.97em;
+    font-weight: 600;
+    margin: 8px 0 0 0;
+    width: 90%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+.library-game-install .material-icons {
+    font-size: 1.1em;
+    vertical-align: middle;
+}
+.library-game-addon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #23232a;
+    color: #fff;
+    font-size: 0.95em;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #0002;
+}
+@media (max-width: 900px) {
+    .library-main {
+        padding: 0 8px 32px 8px;
+    }
+    .library-games-grid {
+        gap: 18px 8px;
+    }
+    .library-game-card {
+        width: 48vw;
+        min-width: 160px;
+        max-width: 240px;
+    }
+}
