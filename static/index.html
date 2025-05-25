@@ -63,7 +63,8 @@
             <img class="hero-banner-bg" src="images/games/default.jpg" alt="Featured Game Background">
             <div class="hero-content">
                 <h2>Featured Game/Event Title</h2>
-                <p>Short description or event details go here.</p>
+                <span id="heroGenre" class="hero-genre" style="display:block;font-size:1.1em;color:#1ba9ff;font-weight:600;margin-bottom:8px;"></span>
+                <p></p>
                 <button id="heroReadMoreBtn">Read more</button>
             </div>
             <div class="hero-slider">
@@ -185,6 +186,16 @@
             if (cartIcon) cartIcon.style.display = '';
         }
     })();
+    // Fetch and display featured game genre
+    fetch('http://127.0.0.1:5000/api/games')
+      .then(res => res.json())
+      .then(games => {
+        if (Array.isArray(games) && games.length > 0) {
+          // Use the first game as featured (customize as needed)
+          const genre = games[0].genre || '';
+          document.getElementById('heroGenre').textContent = genre ? genre : '';
+        }
+      });
     </script>
 </body>
 </html>

@@ -93,6 +93,20 @@ function renderLibraryGames(games) {
             <div class="library-game-install"><span class="material-icons">download</span> Install</div>
             ${game.addon ? `<div class="library-game-addon">${game.addon}</div>` : ''}
         `;
+        // Download logic
+        const installBtn = card.querySelector('.library-game-install');
+        if (installBtn) {
+            installBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Debug log
+                console.log('Install clicked, download_url:', game.download_url);
+                if (game.download_url && game.download_url.trim()) {
+                    window.open(game.download_url.trim(), '_blank', 'noopener');
+                } else {
+                    alert('No download link available for this game.');
+                }
+            });
+        }
         grid.appendChild(card);
     });
 }

@@ -440,6 +440,7 @@ def get_userlibrary():
                     'id': game.id,
                     'title': game.title,
                     'image_url': game.image_url,
+                    'download_url': game.download_url,  # <-- Add this line
                     'achievements': 0,  # Placeholder, can be replaced with real count
                     'addon': None,      # Placeholder, can be replaced with real add-on info
                 })

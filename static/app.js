@@ -187,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 function showFeatured(idx) {
                     const game = featuredGames[idx];
                     heroContent.querySelector('h2').textContent = game.title;
-                    heroContent.querySelector('p').textContent = game.description ? game.description.substring(0, 120) + (game.description.length > 120 ? '...' : '') : '';
                     // Set up Read More button to show modal
                     const readMoreBtn = document.getElementById('heroReadMoreBtn');
                     if (readMoreBtn) {
