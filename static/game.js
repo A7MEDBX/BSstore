@@ -442,6 +442,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Call on page load
             updateCartHeaderBadge();
+
+            const genreElement = document.getElementById('gameGenre');
+            const descriptionElement = document.getElementById('gameDescription');
+            if (genreElement) {
+                genreElement.textContent = `Genre: ${game.genre || 'N/A'}`;
+            }
+            if (descriptionElement) {
+                descriptionElement.textContent = `Description: ${game.description || 'No description available.'}`;
+            }
+        })
+        .catch(err => {
+            console.error('Failed to fetch game details:', err);
         });
 });
 

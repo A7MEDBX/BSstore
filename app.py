@@ -47,7 +47,7 @@ CORS(app, supports_credentials=True,
          "http://localhost", "http://127.0.0.1"
      ],
      allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
 
 limiter = Limiter(
     get_remote_address,
@@ -815,6 +815,38 @@ def update_user(user_id):
     data = request.json
     user.username = data.get('username', user.username)
     user.email = data.get('email', user.email)
+    db.session.commit()
+    return jsonify({'id': user.id, 'username': user.username, 'email': user.email})
+
+@app.route('/api/users/<int:user_id>', methods=['PATCH'])
+@login_required
+def patch_user(user_id):
+    if request.user_id != user_id:
+        return jsonify({'error': 'Forbidden: You can only edit your own account.'}), 403
+    user = User.query.get_or_404(user_id)
+    data = request.json
+    # Password change logic
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    if old_password and new_password:
+        if not check_password_hash(user.password_hash, old_password):
+            return jsonify({'error': 'Old password is incorrect.'}), 400
+        if len(new_password) < 8:
+            return jsonify({'error': 'New password must be at least 8 characters.'}), 400
+        user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        return jsonify({'message': 'Password changed successfully.'})
+    # Only allow editing username and email
+    username = data.get('username')
+    email = data.get('email')
+    if username:
+        if User.query.filter(User.username == username, User.id != user_id).first():
+            return jsonify({'error': 'Username already exists.'}), 400
+        user.username = username
+    if email:
+        if User.query.filter(User.email == email, User.id != user_id).first():
+            return jsonify({'error': 'Email already exists.'}), 400
+        user.email = email
     db.session.commit()
     return jsonify({'id': user.id, 'username': user.username, 'email': user.email})
 

@@ -3,74 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
+    <title>Settings</title>
     <link rel="stylesheet" href="dashboard.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main class="dashboard-main">
+    <!-- Site Header (Epic Games style, matches screenshot) -->
+    <header id="site-header">
+        <div class="header-container">
+            <a href="index.html" class="header-logo">BSstore</a>
+            <nav class="header-nav">
+                <a href="games.html">Store</a>
+                <a href="library.html">Library</a>
+                <a href="#">Help</a>
+            </nav>
+            <a href="cart.html" id="cartIconContainer"><i class="fas fa-shopping-cart"></i></a>
+            <div id="headerUserMenu" class="header-user-menu">
+                <span id="userAvatar" class="user-avatar">A</span>
+                <span id="userName" class="user-name">a</span>
+            </div>
+        </div>
+    </header>
+    <div class="dashboard-main">
         <h1 class="dashboard-title">Settings</h1>
-        <section class="dashboard-section">
-            <h2>Account Information</h2>
-            <div class="dashboard-row">
-                <label>ID:</label>
-                <span id="userId"></span>
-            </div>
-            <div class="dashboard-row">
-                <label>Display Name:</label>
-                <input type="text" id="displayName" disabled>
-                <button id="editDisplayNameBtn" class="edit-btn">Edit</button>
-            </div>
-            <div class="dashboard-row">
-                <label>Email Address:</label>
-                <input type="text" id="email" disabled>
-                <button id="editEmailBtn" class="edit-btn">Edit</button>
-            </div>
-        </section>
 
-        <section class="dashboard-section">
-            <h2>Personal Details</h2>
-            <p>Manage your name and contact info. These personal details are private and will not be displayed to other users.</p>
-            <div class="dashboard-row">
-                <label>First Name:</label>
-                <input type="text" id="firstName" disabled>
+        <!-- Account Information Section -->
+        <div class="dashboard-section" id="account-info-section">
+            <h2>Account information</h2>
+            <div class="dashboard-row" style="margin-bottom: 8px;">
+                <span id="account-id" style="color: #999; font-size: 14px;"></span>
             </div>
             <div class="dashboard-row">
-                <label>Last Name:</label>
-                <input type="text" id="lastName" disabled>
+                <label for="display-name">Display name</label>
+                <div style="display: flex; align-items: center; flex: 1; gap: 8px;">
+                    <input type="text" id="display-name" name="display-name" value="" disabled>
+                    <i class="fas fa-info-circle info-icon" title="This is the name that will be displayed to other users"></i>
+                    <button class="edit-btn" id="edit-display-name" style="padding: 8px 12px;"><i class="fas fa-pen"></i></button>
+                </div>
             </div>
             <div class="dashboard-row">
-                <label>Address Line 1:</label>
-                <input type="text" id="address1" disabled>
+                <label for="email">Email address</label>
+                <div style="display: flex; align-items: center; flex: 1; gap: 8px;">
+                    <input type="email" id="email" name="email" value="" disabled>
+                    <i class="fas fa-info-circle info-icon" title="Your account's primary email address"></i>
+                    <button class="edit-btn" id="edit-email" style="padding: 8px 12px;"><i class="fas fa-pen"></i></button>
+                </div>
             </div>
-            <div class="dashboard-row">
-                <label>Address Line 2:</label>
-                <input type="text" id="address2" disabled>
-            </div>
-            <div class="dashboard-row">
-                <label>City:</label>
-                <input type="text" id="city" disabled>
-            </div>
-            <div class="dashboard-row">
-                <label>Region:</label>
-                <input type="text" id="region" disabled>
-            </div>
-            <div class="dashboard-row">
-                <label>Postal Code:</label>
-                <input type="text" id="postalCode" disabled>
-            </div>
-            <div class="dashboard-row">
-                <label>Country:</label>
-                <input type="text" id="country" disabled>
-            </div>
-        </section>
+        </div>
 
-        <section class="dashboard-section">
-            <h2>Delete Account</h2>
-            <p>Delete your account including all personal information, purchases, and game progress. Your account will be permanently deleted in 30 days.</p>
-            <button id="deleteAccountBtn" class="delete-btn">Delete Account</button>
-        </section>
-    </main>
+        <!-- Change Password Section -->
+        <div class="dashboard-section" id="change-password-section">
+            <h2>Change password</h2>
+            <div class="dashboard-row">
+                <label for="current-password">Current password</label>
+                <input type="password" id="old-password" name="current-password" autocomplete="current-password">
+            </div>
+            <div class="dashboard-row">
+                <label for="new-password">New password</label>
+                <input type="password" id="new-password" name="new-password" autocomplete="new-password">
+            </div>
+            <div class="dashboard-row">
+                <label for="confirm-password">Confirm new password</label>
+                <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password">
+            </div>
+            <div class="dashboard-row">
+                <button class="save-btn" id="change-password-btn" style="width: 160px; margin-top: 8px;">Change Password</button>
+            </div>
+        </div>
+
+        <!-- Delete Account Section -->
+        <div class="dashboard-section">
+            <h2>Delete account</h2>
+            <p>Delete your Epic Games account including all personal information, purchases, game progress, in-game content, your Epic Wallet balance and Unreal projects. Your account will be permanently deleted in 30 days.</p>
+            <div class="dashboard-row">
+                <button class="delete-btn" id="delete-account-btn">Delete account</button>
+            </div>
+        </div>
+    </div>
+    <script src="header.js"></script>
     <script src="dashboard.js"></script>
 </body>
 </html>

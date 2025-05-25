@@ -43,7 +43,9 @@ if (loginForm) {
                 return;
             }
             const data = await res.json();
+            // Store token in both cookie and localStorage for maximum compatibility
             document.cookie = `jwt=${data.token}; path=/; SameSite=Strict;`;
+            localStorage.setItem('jwt_token', data.token);
             // Save user info from login response in cookie
             document.cookie = `user=${encodeURIComponent(JSON.stringify({id: data.id, username: data.username}))}; path=/; SameSite=Strict;`;
             // Optionally fetch user profile (if you want more info)
