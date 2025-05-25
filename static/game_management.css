@@ -1,0 +1,379 @@
+/* General Reset */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #1e1e2f;
+    color: #fff;
+}
+
+/* Dashboard Layout */
+.dashboard {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    background: #181a20;
+    border-radius: 18px;
+    border: 2px solid #1ba9ff;
+    box-shadow: 0 2px 16px 0 rgba(0,0,0,0.12);
+    width: 270px;
+    margin: 32px 0 0 32px;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+.sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.sidebar-header {
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    padding: 18px 20px 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #1ba9ff;
+}
+
+.sidebar-header .sidebar-title {
+    font-size: 1.13em;
+    font-weight: 700;
+    color: #181a20;
+    letter-spacing: 0.2px;
+}
+
+.sidebar-header .sidebar-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-content {
+    padding: 22px 0 18px 20px;
+    color: #e0e6ef;
+    font-size: 1em;
+    min-height: 80px;
+}
+
+.sidebar-content .sidebar-link {
+    color: #e0e6ef;
+    text-decoration: none;
+    font-size: 1em;
+    display: block;
+    margin-bottom: 8px;
+    transition: color 0.2s;
+}
+.sidebar-content .sidebar-link:hover {
+    color: #1ba9ff;
+}
+
+.sidebar-content .sidebar-logout {
+    color: #e0e6ef;
+    font-size: 1em;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.2s;
+}
+.sidebar-content .sidebar-logout:hover {
+    color: #ff3b3b;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.main-content header {
+    margin-bottom: 20px;
+}
+
+.main-content header h1 {
+    font-size: 24px;
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    background-color: #444;
+    color: #fff;
+    margin-right: 10px;
+}
+
+.search-bar input::placeholder {
+    color: #aaa;
+}
+
+.search-bar .filter-btn {
+    background-color: #444;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.search-bar .filter-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Games Grid */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    overflow-y: auto;
+    max-height: 500px; /* Makes the grid scrollable */
+    padding-right: 10px;
+}
+
+.game-card {
+    background-color: #2a2a3b;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+}
+
+.game-card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.game-card h3 {
+    font-size: 16px;
+    margin: 10px 0;
+    color: #fff;
+}
+
+.game-card p {
+    font-size: 14px;
+    color: #aaa;
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8); /* Black background with opacity */
+}
+
+.modal-content {
+    background-color: #1e1e2f;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 50%;
+    color: #fff;
+    position: relative;
+}
+
+.close-btn {
+    color: #fff;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: #ff0000;
+}
+
+/* Modern Edit Modal Styling - Two Column Epic Style */
+#editGameModal.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background: rgba(16,19,26,0.85);
+    justify-content: center;
+    align-items: center;
+}
+#editGameModal .modal-content {
+    background: #181b23;
+    color: #fff;
+    margin: 40px auto;
+    border-radius: 18px;
+    padding: 36px 36px 28px 36px;
+    width: 700px;
+    max-width: 98vw;
+    box-shadow: 0 8px 32px #000a;
+    position: relative;
+    animation: modalPopIn 0.25s cubic-bezier(.4,2,.6,1) 1;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 36px;
+    align-items: flex-start;
+}
+@keyframes modalPopIn {
+    0% { transform: scale(0.95) translateY(40px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+#editGameModal .close-btn {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    font-size: 1.7em;
+    color: #b0b8c1;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 2;
+}
+#editGameModal .close-btn:hover {
+    color: #66c0f4;
+}
+#editGameForm {
+    display: contents;
+}
+#editGameForm .form-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: flex-start;
+}
+#editGameForm .form-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    justify-content: flex-start;
+}
+#editGameForm label {
+    color: #fff;
+    font-size: 1.08em;
+    margin-bottom: 2px;
+    margin-top: 8px;
+    font-weight: 500;
+    text-align: left;
+}
+#editGameForm input, #editGameForm select {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    background: #23272f;
+    color: #fff;
+    font-size: 1.08em;
+    outline: none;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s;
+    box-shadow: 0 2px 8px #0002;
+}
+#editGameForm input:focus, #editGameForm select:focus {
+    box-shadow: 0 0 0 2px #66c0f4;
+}
+#editGameForm .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    margin-top: 18px;
+}
+#editGameForm .save-btn, #editGameForm .back-btn {
+    padding: 12px 32px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1.08em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+#editGameForm .save-btn {
+    background: #1ba9ff;
+    color: #fff;
+}
+#editGameForm .save-btn:hover {
+    background: #0d7ecb;
+    color: #fff;
+}
+#editGameForm .back-btn {
+    background: #ff1818;
+    color: #fff;
+}
+#editGameForm .back-btn:hover {
+    background: #b30000;
+    color: #fff;
+}
+#editGameForm .image-preview {
+    width: 200px;
+    height: 140px;
+    background: #23272f;
+    border-radius: 12px;
+    margin: 0 auto 8px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 8px #0003;
+}
+#editGameForm .image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 12px;
+}
+#editGameForm .image-label {
+    color: #c7d5e0;
+    font-size: 1em;
+    margin-bottom: 4px;
+    display: block;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    width: 98vw;
+    margin: 12px auto 0 auto;
+    border-radius: 14px;
+  }
+  .sidebar-header {
+    border-radius: 14px 14px 0 0;
+    padding: 14px 12px 10px 12px;
+  }
+  .sidebar-content {
+    padding: 16px 0 12px 12px;
+  }
+}

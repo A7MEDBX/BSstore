@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Management</title>
+    <link rel="stylesheet" href="game_management.css">
+    <link rel="stylesheet" href="edit_game.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Game Management</h2>
+            <ul>
+                <li><a href="#">Log Out</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <h1>Games List</h1>
+            </header>
+            <section class="games-table-container">
+                <div class="search-bar" style="display:flex;justify-content:center;">
+                    <input type="text" id="search" placeholder="Search game ..." oninput="filterGames()" style="width: 55%; min-width: 220px; max-width: 420px; margin: 0 auto;">
+                </div>
+                <div class="games-grid" id="gamesGrid">
+                    <!-- Game cards will be dynamically loaded here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Edit Game Modal -->
+    <div id="editGameModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEditModal()">&times;</span>
+            <form id="editGameForm" autocomplete="off">
+                <div class="edit-flex-row">
+                    <div class="form-left">
+                        <label for="title">Game title:</label>
+                        <input type="text" id="title" name="title" placeholder="Enter game title">
+                        <label for="description">Description:</label>
+                        <input type="text" id="description" name="description" placeholder="Enter game description">
+                        <label for="genre">Genre:</label>
+                        <input type="text" id="genre" name="genre" placeholder="Enter genre">
+                        <label for="price">Price:</label>
+                        <input type="number" id="price" name="price" placeholder="Enter game price">
+                        <label for="status">Status:</label>
+                        <select id="status" name="status">
+                            <option value="draft">Draft</option>
+                            <option value="under_review">Under Review</option>
+                            <option value="published">Published</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                        <label for="approval">Approval:</label>
+                        <select id="approval" name="approval">
+                            <option value="Approved">Approved</option>
+                            <option value="Not Approved">Not Approved</option>
+                        </select>
+                    </div>
+                    <div class="form-right">
+                        <div class="image-preview" id="imagePreview"></div>
+                        <label for="image_url" class="image-label">Image URL:</label>
+                        <input type="text" id="image_url" name="image_url" placeholder="Enter image URL">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="back-btn" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="save-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="game_management.js"></script>
+    <script src="edit_game.js"></script>
+</body>
+</html>
