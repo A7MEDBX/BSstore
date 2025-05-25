@@ -51,13 +51,31 @@ function renderGamesGrid(games) {
                         <span style="font-size:1em;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;">${game.title}</span>
                         <span style="background:#1ba9ff;color:#fff;font-size:0.9em;font-weight:600;padding:2px 8px;border-radius:6px;max-width:60px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${game.genre ? game.genre : ''}</span>
                     </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                         <span style="font-weight:bold;font-size:1em;color:#66c0f4;">${game.price ? `$${game.price}` : 'Free'}</span>
-                        <button class="edit-btn" style="background:#23272f;color:#fff;border:none;padding:6px 14px;border-radius:7px;cursor:pointer;transition:background 0.2s;font-weight:600;">Edit</button>
+                        <div style="display:flex;gap:8px;">
+                            <button class="delete-btn" style="background:linear-gradient(90deg,#ff4f4f 0%,#ff1b1b 100%);color:#fff;border:none;padding:6px 8px;min-width:60px;max-width:80px;border-radius:7px;cursor:pointer;transition:background 0.2s;font-weight:600;box-shadow:0 2px 8px 0 rgba(255,31,31,0.10);">Delete</button>
+                            <button class="edit-btn" style="background:#23272f;color:#fff;border:none;padding:6px 14px;border-radius:7px;cursor:pointer;transition:background 0.2s;font-weight:600;">Edit</button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
+        // Delete button event
+        gameCard.querySelector('.delete-btn').addEventListener("click", e => {
+            e.stopPropagation();
+            showDeleteConfirmationPopup(async () => {
+                try {
+                    const res = await fetch(`http://127.0.0.1:5000/api/games/${game.id}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    showPopupMessage('Game deleted successfully!', 'success');
+                    fetchGames();
+                } catch {
+                    showPopupMessage('Failed to delete game.', 'error');
+                }
+            });
+        });
+        // Edit button event
         gameCard.querySelector('.edit-btn').addEventListener("click", e => {
             e.stopPropagation();
             openEditModal(game.id);
@@ -85,7 +103,7 @@ function displayNoGamesMessage() {
 function openEditModal(gameId) {
     if (!gameId) {
         console.error("Invalid gameId:", gameId);
-        alert("Failed to open the game editor. Please try again.");
+        showPopupMessage("Failed to open the game editor. Please try again.", "error");
         return;
     }
     const modal = document.getElementById("editGameModal");
@@ -147,21 +165,19 @@ if (editGameForm) {
             price: document.getElementById("price").value,
             status: document.getElementById("status").value,
             approval: document.getElementById("approval").value,
-            image_url: document.getElementById("image_url").value
+            image_url: document.getElementById("image_url").value,
+            download_url: document.getElementById("download_url").value
         };
-        try {
-            const res = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
-            if (!res.ok) throw new Error("Failed to update game");
-            closeEditModal();
-            fetchGames();
-        } catch (err) {
-            alert("Failed to update game: " + err.message);
-        }
+     
     };
+    // Make sure Cancel/Back button closes the modal
+    const backBtn = document.querySelector('.back-btn, .cancel-btn');
+    if (backBtn) {
+        backBtn.onclick = function(e) {
+            e.preventDefault();
+            closeEditModal();
+        };
+    }
 }
 
 // When opening modal, show image preview
@@ -171,13 +187,14 @@ function fetchGameDetails(gameId) {
         .then(game => {
             // Left column: text fields
             document.getElementById("title").value = game.title || "";
+            document.getElementById("download_url").value = game.download_url || "";
             document.getElementById("description").value = game.description || "";
             document.getElementById("genre").value = game.genre || "";
             document.getElementById("price").value = game.price || "";
             document.getElementById("status").value = game.status || "draft";
             document.getElementById("approval").value = game.approval || "Not Approved";
             document.getElementById("image_url").value = game.image_url || "";
-            // Right column: image preview
+            document.getElementById("download_url").value = game.download_url || "";
             const preview = document.getElementById("imagePreview");
             preview.innerHTML = game.image_url ? `<img src="${game.image_url}" alt="Preview">` : "";
         });
@@ -265,7 +282,271 @@ window.addEventListener('DOMContentLoaded', function () {
         }
         form.style.paddingBottom = '56px'; // تقليل المسافة السفلية
     }
+
+    // Apply the same modern CSS to the Add Game form as the Edit form
+    const addForm = document.getElementById('addGameForm');
+    if (addForm) {
+        addForm.style.display = 'flex';
+        addForm.style.flexDirection = 'row';
+        addForm.style.alignItems = 'flex-end';
+        addForm.style.justifyContent = 'space-between';
+        addForm.style.gap = '32px';
+        addForm.style.position = 'relative';
+        addForm.style.height = 'auto';
+        addForm.style.minHeight = 'auto';
+        addForm.style.paddingBottom = '64px';
+
+        // Right column (form-right)
+        const right = addForm.querySelector('.form-right');
+        if (right) {
+            right.style.display = 'flex';
+            right.style.flexDirection = 'column';
+            right.style.alignItems = 'flex-end';
+            right.style.gap = '8px';
+            right.style.width = '200px';
+            right.style.maxWidth = '220px';
+            const preview = document.getElementById('addImagePreview');
+            if (preview) {
+                preview.style.width = '170px';
+                preview.style.height = '120px';
+                preview.style.display = 'block';
+                preview.style.background = '#23232e';
+                preview.style.borderRadius = '10px';
+                preview.style.marginBottom = '6px';
+            }
+            const imageLabel = right.querySelector('.image-label');
+            if (imageLabel) {
+                imageLabel.style.textAlign = 'right';
+                imageLabel.style.marginBottom = '2px';
+            }
+            const imageInput = right.querySelector('#add_image_url');
+            if (imageInput) {
+                imageInput.style.width = '100%';
+                imageInput.style.maxWidth = '100%';
+            }
+        }
+        // Left column (form-left)
+        const left = addForm.querySelector('.form-left');
+        if (left) {
+            left.style.display = 'flex';
+            left.style.flexDirection = 'column';
+            left.style.gap = '10px';
+            left.style.flex = '1';
+            left.querySelectorAll('input, select, textarea').forEach(el => {
+                el.style.width = '100%';
+                el.style.boxSizing = 'border-box';
+                el.style.maxWidth = '100%';
+                el.style.fontSize = '17px';
+                el.style.padding = '10px 16px';
+                el.style.height = '44px';
+                el.style.borderRadius = '8px';
+            });
+        }
+        // Modal buttons
+        const modalButtons = addForm.querySelector('.form-actions');
+        if (modalButtons && addForm) {
+            modalButtons.style.display = 'flex';
+            modalButtons.style.justifyContent = 'flex-end';
+            modalButtons.style.gap = '12px';
+            modalButtons.style.position = 'absolute';
+            modalButtons.style.right = '24px';
+            modalButtons.style.bottom = '20px';
+            modalButtons.style.width = 'auto';
+            modalButtons.style.background = 'transparent';
+            if (addForm.lastElementChild !== modalButtons) {
+                addForm.appendChild(modalButtons);
+            }
+        }
+        addForm.style.paddingBottom = '56px';
+    }
 });
+
+// Modern popup message function
+function showPopupMessage(message, type = "info") {
+    let popup = document.createElement("div");
+    popup.className = `popup-message popup-${type}`;
+    popup.textContent = message;
+    document.body.appendChild(popup);
+    setTimeout(() => {
+        popup.classList.add("show");
+    }, 10);
+    setTimeout(() => {
+        popup.classList.remove("show");
+        setTimeout(() => popup.remove(), 300);
+    }, 3000);
+}
 
 // Fetch and display games on page load
 window.onload = fetchGames;
+
+// Add Game Modal (structure matches Edit Game Modal for CSS compatibility)
+const addGameModalHtml = `
+<div id="addGameModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeAddGameModal()">&times;</span>
+        <form id="addGameForm" autocomplete="off">
+            <div class="edit-flex-row">
+                <div class="form-left">
+                    <label for="add_title">Game title:</label>
+                    <input type="text" id="add_title" name="title" placeholder="Enter game title">
+                    <label for="add_description">Description:</label>
+                    <input type="text" id="add_description" name="description" placeholder="Enter game description">
+                    <label for="add_genre">Genre:</label>
+                    <input type="text" id="add_genre" name="genre" placeholder="Enter genre">
+                    <label for="add_price">Price:</label>
+                    <input type="number" id="add_price" name="price" placeholder="Enter game price">
+                    <label for="add_release_date">Release Date:</label>
+                    <input type="date" id="add_release_date" name="release_date" placeholder="Enter release date">
+                    <label for="add_status">Status:</label>
+                    <select id="add_status" name="status">
+                        <option value="draft">Draft</option>
+                        <option value="under_review">Under Review</option>
+                        <option value="published">Published</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                    <label for="add_approval">Approval:</label>
+                    <select id="add_approval" name="approval">
+                        <option value="Approved">Approved</option>
+                        <option value="Not Approved">Not Approved</option>
+                    </select>
+                </div>
+                <div class="form-right">
+                    <div class="image-preview" id="addImagePreview"></div>
+                    <label for="add_image_url" class="image-label">Image URL:</label>
+                    <input type="text" id="add_image_url" name="image_url" placeholder="Enter image URL">
+                    <label for="add_download_url">Download URL:</label>
+                    <input type="text" id="add_download_url" name="download_url" placeholder="Enter download URL">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="back-btn" onclick="closeAddGameModal()">Cancel</button>
+                <button type="submit" class="save-btn">Add</button>
+            </div>
+        </form>
+    </div>
+</div>
+`;
+
+// Only insert the Add Game modal if it does not already exist
+if (!document.getElementById('addGameModal')) {
+    document.body.insertAdjacentHTML('beforeend', addGameModalHtml);
+}
+
+// Show Add Game Modal
+const addGameBtn = document.getElementById('addGameBtn');
+if (addGameBtn) {
+    addGameBtn.style.background = 'linear-gradient(90deg,#1ba9ff 0%,#4f8cff 100%)';
+    addGameBtn.style.color = '#fff';
+    addGameBtn.style.fontWeight = '700';
+    addGameBtn.style.fontSize = '17px';
+    addGameBtn.style.border = 'none';
+    addGameBtn.style.borderRadius = '8px';
+    addGameBtn.style.padding = '12px 32px';
+    addGameBtn.style.boxShadow = '0 2px 8px 0 rgba(31,38,135,0.10)';
+    addGameBtn.style.transition = 'background 0.2s, box-shadow 0.2s';
+    addGameBtn.style.cursor = 'pointer';
+    addGameBtn.style.marginLeft = '16px';
+    addGameBtn.onmouseover = function() {
+        addGameBtn.style.background = 'linear-gradient(90deg,#4f8cff 0%,#1ba9ff 100%)';
+        addGameBtn.style.boxShadow = '0 4px 16px 0 rgba(31,38,135,0.18)';
+    };
+    addGameBtn.onmouseout = function() {
+        addGameBtn.style.background = 'linear-gradient(90deg,#1ba9ff 0%,#4f8cff 100%)';
+        addGameBtn.style.boxShadow = '0 2px 8px 0 rgba(31,38,135,0.10)';
+    };
+}
+
+addGameBtn.addEventListener('click', function() {
+    document.getElementById('addGameModal').style.display = 'block';
+});
+
+function closeAddGameModal() {
+    document.getElementById('addGameModal').style.display = 'none';
+}
+
+// Live image preview for Add Game
+const addImageUrlInput = document.getElementById('add_image_url');
+const addImagePreview = document.getElementById('addImagePreview');
+addImageUrlInput.addEventListener('input', function() {
+    addImagePreview.innerHTML = `<img src="${addImageUrlInput.value || 'https://via.placeholder.com/150'}" alt="Game Image">`;
+});
+
+// Handle Add Game Form Submission
+const addGameForm = document.getElementById('addGameForm');
+addGameForm.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    const formData = {
+        title: document.getElementById('add_title').value,
+        description: document.getElementById('add_description').value,
+        genre: document.getElementById('add_genre').value,
+        price: document.getElementById('add_price').value,
+        release_date: document.getElementById('add_release_date').value,
+        status: document.getElementById('add_status').value,
+        approved: document.getElementById('add_approval').value === 'Approved',
+        image_url: document.getElementById('add_image_url').value,
+        download_url: document.getElementById('add_download_url').value
+    };
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/games', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        if (response.ok) {
+            showPopupMessage('Game added successfully!', 'success');
+            closeAddGameModal();
+            fetchGames();
+        } else {
+            const error = await response.json();
+            showPopupMessage(`Error: ${error.message}`, 'error');
+        }
+    } catch (error) {
+        showPopupMessage('Failed to add game. Please try again.', 'error');
+    }
+});
+
+// Modern confirmation popup for delete
+function showDeleteConfirmationPopup(onConfirm) {
+    // Remove any existing confirmation popup
+    const old = document.getElementById('delete-confirm-popup');
+    if (old) old.remove();
+    // Overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'delete-confirm-popup';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.background = 'rgba(20,22,28,0.55)';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '10000';
+    // Modal box
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+    box.style.background = '#23272f';
+    box.style.color = '#fff';
+    box.style.borderRadius = '14px';
+    box.style.padding = '36px 32px 24px 32px';
+    box.style.minWidth = '340px';
+    box.style.boxShadow = '0 8px 32px rgba(0,0,0,0.28)';
+    box.style.textAlign = 'center';
+    box.innerHTML = `
+        <div class="modal-title">Delete Game</div>
+        <div class="modal-msg">Are you sure you want to delete this game?</div>
+        <div class="modal-actions" style="display:flex;gap:18px;justify-content:center;margin-top:24px;">
+            <button class="modal-confirm" style="background:linear-gradient(90deg,#ff4f4f 60%,#ff6f61 100%);color:#fff;border:none;border-radius:7px;padding:10px 32px;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.18s;box-shadow:0 2px 8px rgba(255,77,79,0.08);">Delete</button>
+            <button class="modal-cancel" style="background:#23272f;color:#fff;border:1px solid #444;border-radius:7px;padding:10px 32px;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.18s,color 0.18s;">Cancel</button>
+        </div>
+    `;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    // Button logic
+    box.querySelector('.modal-cancel').onclick = () => overlay.remove();
+    box.querySelector('.modal-confirm').onclick = () => {
+        overlay.remove();
+        onConfirm();
+    };
+}

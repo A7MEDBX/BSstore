@@ -13,7 +13,7 @@
         <aside class="sidebar">
             <h2>Game Management</h2>
             <ul>
-                <li><a href="#">Log Out</a></li>
+                <li><a href="login.html">Log Out</a></li>
             </ul>
         </aside>
 
@@ -25,6 +25,7 @@
             <section class="games-table-container">
                 <div class="search-bar" style="display:flex;justify-content:center;">
                     <input type="text" id="search" placeholder="Search game ..." oninput="filterGames()" style="width: 55%; min-width: 220px; max-width: 420px; margin: 0 auto;">
+                    <button type="button" class="add-btn" id="addGameBtn" style="margin-left: 16px;">Add Game</button>
                 </div>
                 <div class="games-grid" id="gamesGrid">
                     <!-- Game cards will be dynamically loaded here -->
@@ -62,9 +63,13 @@
                         </select>
                     </div>
                     <div class="form-right">
+                        <label for="download_url">Download URL:</label>
+                        <input type="text" id="download_url" name="download_url" placeholder="Enter download URL">
                         <div class="image-preview" id="imagePreview"></div>
                         <label for="image_url" class="image-label">Image URL:</label>
                         <input type="text" id="image_url" name="image_url" placeholder="Enter image URL">
+                    
+                       
                     </div>
                 </div>
                 <div class="form-actions">

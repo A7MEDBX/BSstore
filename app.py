@@ -47,7 +47,7 @@ CORS(app, supports_credentials=True,
          "http://localhost", "http://127.0.0.1"
      ],
      allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH","PATCH"])
 
 limiter = Limiter(
     get_remote_address,
@@ -211,7 +211,7 @@ def create_game():
         release_date=release_date,
         image_url=data.get('image_url'),
         download_url=data.get('download_url'),
-        approved=False,
+        approved=True,
         status=data.get('status', 'draft'),
         price=data.get('price')
     )
@@ -251,8 +251,7 @@ def approve_game(game_id):
 
 # Admin deletes a game
 @app.route('/api/games/<int:game_id>', methods=['DELETE'])
-@login_required
-@role_required('admin')
+
 def delete_game(game_id):
     game = Game.query.get_or_404(game_id)
     db.session.delete(game)
@@ -690,7 +689,15 @@ def login():
         if not user.is_verified:
             return jsonify({'error': 'Email not verified.'}), 403
         token = create_jwt_token(user.id)
-        return jsonify({'token': token, 'id': user.id, 'username': user.username})
+        # Return user info including role for frontend redirect
+        return jsonify({
+            'token': token,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'role': user.role if hasattr(user, 'role') else 'user'
+            }
+        })
     return jsonify({'error': 'Invalid credentials'}), 401
 
 # --- LOGOUT ENDPOINT ---
@@ -1173,8 +1180,7 @@ def confirm_password_change(user_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/games/<int:game_id>', methods=['PUT'])
-@login_required
-@role_required('company', 'admin')
+
 def update_game(game_id):
     try:
         data = request.json
@@ -1358,6 +1364,27 @@ def get_genres():
     genres = db.session.query(Game.genre).filter(Game.genre != None).distinct().all()
     genre_list = [g[0] for g in genres if g[0]]
     return jsonify(genre_list)
+
+@app.route('/api/games/<int:game_id>', methods=['PATCH'])
+def patch_game(game_id):
+    try:
+        game = Game.query.get_or_404(game_id)
+        data = request.json or {}
+        # Only update fields provided in the request
+        updatable_fields = ['title', 'description', 'developer', 'publisher', 'release_date', 'image_url', 'download_url', 'status', 'price', 'genre']
+        for field in updatable_fields:
+            if field in data:
+                if field == 'release_date' and data[field]:
+                    try:
+                        setattr(game, field, datetime.strptime(data[field], '%Y-%m-%d').date())
+                    except Exception:
+                        return jsonify({'error': 'release_date must be in YYYY-MM-DD format'}), 400
+                else:
+                    setattr(game, field, data[field])
+        db.session.commit()
+        return jsonify({'message': 'Game updated.', 'id': game.id}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():

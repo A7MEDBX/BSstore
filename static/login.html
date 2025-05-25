@@ -206,6 +206,14 @@
             window.location.href = 'resetpassword.html' + (email ? ('?email=' + encodeURIComponent(email)) : '');
         }
     });
+    window.addEventListener('DOMContentLoaded', function () {
+        // Check if user is admin and redirect to game_management.html
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user && user.role === 'admin') {
+            window.location.href = 'game_management.html';
+            return;
+        }
+    });
     </script>
 </body>
 </html>
