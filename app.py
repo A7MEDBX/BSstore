@@ -400,7 +400,17 @@ def create_purchase():
     game_obj = Game.query.get(game_id)
     if user_obj and game_obj:
         thank_msg = Message('Thank you for your purchase!', recipients=[user_obj.email])
-        thank_msg.body = f'Thank you, {user_obj.username}, for purchasing {game_obj.title} from us! Enjoy your game.'
+        thank_msg.html = f'''
+        <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+            <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+                <h2 style="color:#1ba9ff;margin-bottom:18px;">Thank You for Your Purchase!</h2>
+                <img src="{game_obj.image_url or 'https://via.placeholder.com/120x160?text=No+Image'}" alt="{game_obj.title}" style="width:120px;height:160px;object-fit:cover;border-radius:8px;margin-bottom:18px;"/>
+                <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">{game_obj.title}</div>
+                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Thank you, {user_obj.username}, for purchasing <b>{game_obj.title}</b> from us! Enjoy your game.</div>
+                <a href="http://localhost:5000/game.html?id={game_obj.id}" style="display:inline-block;margin-top:12px;padding:12px 32px;background:linear-gradient(90deg,#1ba9ff 0,#3b7cff 100%);color:#fff;border-radius:8px;font-size:1.1rem;font-weight:600;text-decoration:none;">View Game</a>
+            </div>
+        </div>
+        '''
         mail.send(thank_msg)
     return jsonify({'id': purchase.id, 'user_id': purchase.user_id, 'game_id': purchase.game_id, 'payment_method_id': payment_method.id}), 201
 
@@ -682,7 +692,17 @@ def send_verification_email(user):
     user.otp_expiry = expiry
     db.session.commit()
     msg = Message('Your Email Verification OTP', recipients=[user.email])
-    msg.body = f'Your OTP code is: {otp}. It expires in 10 minutes.'
+    msg.html = f'''
+    <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+        <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+            <h2 style="color:#1ba9ff;margin-bottom:18px;">Email Verification</h2>
+            <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Hello {user.username},</div>
+            <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Your OTP code is:</div>
+            <div style="color:#fff;font-size:2rem;font-weight:700;margin-bottom:18px;letter-spacing:2px;">{otp}</div>
+            <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">It expires in 10 minutes.</div>
+        </div>
+    </div>
+    '''
     mail.send(msg)
 
 @app.route('/api/register', methods=['POST'])
@@ -721,7 +741,15 @@ def verify_email_otp():
     db.session.commit()
     # Send notification email after successful verification
     msg = Message('Registration Complete', recipients=[user.email])
-    msg.body = f'Hello {user.username}, your email has been successfully verified and your registration is complete!'
+    msg.html = f'''
+    <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+        <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+            <h2 style="color:#1ba9ff;margin-bottom:18px;">Registration Complete</h2>
+            <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Welcome, {user.username}!</div>
+            <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Your email has been successfully verified and your registration is complete.</div>
+        </div>
+    </div>
+    '''
     mail.send(msg)
     return jsonify({'message': 'Email verified successfully.'})
 
@@ -910,7 +938,17 @@ def password_reset_request():
         db.session.commit()
         # Send OTP email
         msg = Message('Your Password Reset OTP', recipients=[user.email])
-        msg.body = f'Your OTP code is: {otp}. It expires in 10 minutes.'
+        msg.html = f'''
+        <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+            <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+                <h2 style="color:#1ba9ff;margin-bottom:18px;">Password Reset</h2>
+                <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Hello {user.username},</div>
+                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Your OTP code is:</div>
+                <div style="color:#fff;font-size:2rem;font-weight:700;margin-bottom:18px;letter-spacing:2px;">{otp}</div>
+                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">It expires in 10 minutes.</div>
+            </div>
+        </div>
+        '''
         mail.send(msg)
     # Always return success for security
     return jsonify({'message': 'If the email exists, an OTP code has been sent.'}), 200
@@ -1139,7 +1177,17 @@ def change_email(user_id):
         user.otp_expiry = expiry
         db.session.commit()
         msg = Message('Verify your new email', recipients=[new_email])
-        msg.body = f'Your OTP code is: {otp}. It expires in 10 minutes.'
+        msg.html = f'''
+        <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+            <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+                <h2 style="color:#1ba9ff;margin-bottom:18px;">Verify Your New Email</h2>
+                <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Hello,</div>
+                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Your OTP code is:</div>
+                <div style="color:#fff;font-size:2rem;font-weight:700;margin-bottom:18px;letter-spacing:2px;">{otp}</div>
+                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">It expires in 10 minutes.</div>
+            </div>
+        </div>
+        '''
         mail.send(msg)
         user.pending_email = new_email
         db.session.commit()
@@ -1185,7 +1233,17 @@ def change_password(user_id):
         user.otp_expiry = expiry
         db.session.commit()
         msg = Message('Password Change OTP', recipients=[user.email])
-        msg.body = f'Your OTP code is: {otp}. It expires in 10 minutes.'
+        msg.html = f'''
+        <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+            <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+                <h2 style="color:#1ba9ff;margin-bottom:18px;">Password Change</h2>
+                <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Hello {user.username},</div>
+                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Your OTP code is:</div>
+                <div style="color:#fff;font-size:2rem;font-weight:700;margin-bottom:18px;letter-spacing:2px;">{otp}</div>
+                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">It expires in 10 minutes.</div>
+            </div>
+        </div>
+        '''
         mail.send(msg)
         user.pending_password = generate_password_hash(new_password)
         db.session.commit()
@@ -1431,7 +1489,17 @@ def resend_otp():
     user.otp_expiry = expiry
     db.session.commit()
     msg = Message('Your Email Verification OTP', recipients=[user.email])
-    msg.body = f'Your OTP code is: {otp}. It expires in 10 minutes.'
+    msg.html = f'''
+    <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+        <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+            <h2 style="color:#1ba9ff;margin-bottom:18px;">Email Verification</h2>
+            <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Hello {user.username},</div>
+            <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Your OTP code is:</div>
+            <div style="color:#fff;font-size:2rem;font-weight:700;margin-bottom:18px;letter-spacing:2px;">{otp}</div>
+            <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">It expires in 10 minutes.</div>
+        </div>
+    </div>
+    '''
     mail.send(msg)
     return jsonify({'message': 'OTP resent.'})
 
