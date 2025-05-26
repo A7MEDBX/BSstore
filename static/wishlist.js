@@ -56,7 +56,7 @@ function renderWishlist(games) {
             <img src="${game.image_url || 'https://via.placeholder.com/120x160?text=No+Image'}" alt="${game.title}">
             <div class="wishlist-info">
                 <div class="wishlist-title">${game.title}</div>
-                <div class="wishlist-price">${game.currency || 'TRY'} ${game.price ? game.price.toLocaleString() : 'N/A'}</div>
+                <div class="wishlist-price">${game.currency || '$'} ${game.price ? game.price.toLocaleString() : 'N/A'}</div>
                 <div class="wishlist-pegi">
                     <span class="wishlist-pegi-badge">PEGI ${game.pegi || 18}</span>
                     <span class="wishlist-pegi-desc">${game.pegi_desc || 'Violence'}</span>

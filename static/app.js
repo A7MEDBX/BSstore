@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="game-info">
                             <div class="game-title">${game.title}</div>
                             <div class="game-desc">${game.description ? game.description.substring(0, 60) + (game.description.length > 60 ? '...' : '') : ''}</div>
-                            <div class="game-price">${game.price !== undefined && game.price !== null ? `€${game.price.toFixed(2)}` : ''}</div>
+                            <div class="game-price">${game.price !== undefined && game.price !== null ? `$${game.price.toFixed(2)}` : ''}</div>
                         </div>
                     `;
                     card.style.cursor = 'pointer';
