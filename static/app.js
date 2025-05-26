@@ -162,10 +162,20 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00; path=/;";
             document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            logoutAndClearCookies();
             window.location.reload();
         });
     }
-
+  function logoutAndClearCookies() {
+        // Remove all cookies
+        document.cookie.split(';').forEach(function(c) {
+            document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');
+        });
+        // Optionally clear localStorage/sessionStorage
+        localStorage.removeItem('user');
+        // Redirect to login or home
+        window.location.href = 'login.html';
+    }
     const registerBtn = document.getElementById('registerBtn');
     if (registerBtn) {
         registerBtn.addEventListener('click', function(e) {
