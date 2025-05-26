@@ -1221,12 +1221,52 @@ def update_game(game_id):
     try:
         data = request.json
         game = Game.query.get_or_404(game_id)
-        for field in ['title', 'description', 'developer', 'publisher', 'release_date', 'image_url', 'download_url', 'status', 'price']:
-            if field in data:
+        changed_fields = []
+        for field in ['title', 'description', 'developer', 'publisher', 'release_date', 'image_url', 'download_url', 'status', 'price', 'genre']:
+            if field in data and getattr(game, field) != data[field]:
                 setattr(game, field, data[field])
+                changed_fields.append(field)
         db.session.commit()
+        # Notify users with this game in their wishlist
+        if changed_fields:
+            import sys
+            from models import Wishlist, User
+            wishes = Wishlist.query.filter_by(game_id=game_id).all()
+            notified_emails = []
+            failed_emails = []
+            print(f"[DEBUG] Game update: {game.title} (ID: {game.id}) changed fields: {changed_fields}", file=sys.stderr)
+            print(f"[DEBUG] Notifying {len(wishes)} users with this game in their wishlist...", file=sys.stderr)
+            for wish in wishes:
+                user = User.query.get(wish.user_id)
+                if user and user.email:
+                    try:
+                        print(f"[DEBUG] Preparing email for user {user.email}", file=sys.stderr)
+                        msg = Message(f'Update: {game.title} has changed!', recipients=[user.email])
+                        msg.html = f'''
+                        <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
+                            <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
+                                <h2 style="color:#1ba9ff;margin-bottom:18px;">Game Update Notification</h2>
+                                <img src="{game.image_url or 'https://via.placeholder.com/120x160?text=No+Image'}" alt="{game.title}" style="width:120px;height:160px;object-fit:cover;border-radius:8px;margin-bottom:18px;"/>
+                                <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">{game.title}</div>
+                                <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">A game in your wishlist has been updated:</div>
+                                <ul style="text-align:left;color:#fff;font-size:1.05rem;margin:0 0 18px 0;padding:0 0 0 18px;">
+                                    {''.join(f'<li><b>{field.replace('_',' ').title()}</b> changed</li>' for field in changed_fields)}
+                                </ul>
+                                <a href="http://localhost:5000/game.html?id={game.id}" style="display:inline-block;margin-top:12px;padding:12px 32px;background:linear-gradient(90deg,#1ba9ff 0,#3b7cff 100%);color:#fff;border-radius:8px;font-size:1.1rem;font-weight:600;text-decoration:none;">View Game</a>
+                            </div>
+                        </div>
+                        '''
+                        mail.send(msg)
+                        print(f"[DEBUG] Email sent to {user.email}", file=sys.stderr)
+                        notified_emails.append(user.email)
+                    except Exception as e:
+                        print(f"[ERROR] Failed to send email to {user.email}: {e}", file=sys.stderr)
+                        failed_emails.append(user.email)
+            print(f"[DEBUG] Notification summary: {len(notified_emails)} succeeded, {len(failed_emails)} failed.", file=sys.stderr)
         return jsonify({'message': 'Game updated.'})
     except Exception as e:
+        import sys
+        print(f"[ERROR] Exception in update_game: {e}", file=sys.stderr)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/games/<int:game_id>/status', methods=['POST'])
