@@ -708,3 +708,53 @@ function showOrderSummaryPopup(cartItems) {
     overlay.appendChild(box);
 }
 window.showOrderSummaryPopup = showOrderSummaryPopup;
+
+// Add to Wishlist button logic
+document.addEventListener('DOMContentLoaded', function() {
+    // Add to Wishlist button logic (ensure gameId is set from URL if not present)
+    const addToWishlistBtn = document.getElementById('addToWishlistBtn');
+    if (addToWishlistBtn) {
+        let gameId = addToWishlistBtn.dataset.gameId;
+        if (!gameId) {
+            // Try to get from URL param (e.g. ?id=123)
+            gameId = getQueryParam('id');
+            if (gameId) addToWishlistBtn.dataset.gameId = gameId;
+        }
+        addToWishlistBtn.addEventListener('click', async function() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const token = user.token || localStorage.getItem('jwt_token');
+            const gameId = addToWishlistBtn.dataset.gameId;
+            if (!gameId) {
+                if (window.showPopupMessage) showPopupMessage('Game ID not found.', 'error');
+                return;
+            }
+            try {
+                const res = await fetch('http://127.0.0.1:5000/api/wishlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
+                    body: JSON.stringify({ game_id: gameId })
+                });
+                if (res.ok) {
+                    if (window.showPopupMessage) {
+                        showPopupMessage('Added to wishlist!', 'success');
+                    } else {
+                        alert('Added to wishlist!');
+                    }
+                } else {
+                    const data = await res.json();
+                    if (window.showPopupMessage) {
+                        showPopupMessage(data.error || 'Failed to add to wishlist.', 'error');
+                    } else {
+                        alert(data.error || 'Failed to add to wishlist.');
+                    }
+                }
+            } catch (err) {
+                if (window.showPopupMessage) {
+                    showPopupMessage('Network error', 'error');
+                } else {
+                    alert('Network error');
+                }
+            }
+        });
+    }
+});

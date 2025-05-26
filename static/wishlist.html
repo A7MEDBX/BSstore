@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="cart_epic.css">
+    <link rel="stylesheet" href="wishlist.css">
+    <style>
+        body { background: #181a20; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+        .wishlist-header { font-size: 2.5rem; font-weight: 700; margin: 36px 0 18px 0; }
+        .wishlist-bar { background: #23262e; border-radius: 10px; padding: 18px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+        .wishlist-bar svg { margin-right: 12px; }
+        .wishlist-bar span { font-size: 1.08rem; color: #c7d5e0; }
+        .wishlist-toggle { margin-left: 18px; }
+        .wishlist-sort { margin-bottom: 18px; }
+        .wishlist-sort label { color: #aaa; font-size: 1.08rem; margin-right: 8px; }
+        .wishlist-sort select { background: #23262e; color: #fff; border: none; border-radius: 6px; padding: 6px 18px; font-size: 1rem; }
+        .wishlist-list { display: flex; flex-direction: column; gap: 24px; }
+        .wishlist-card { background: #23262e; border-radius: 14px; padding: 24px 24px 18px 24px; display: flex; gap: 24px; align-items: flex-start; box-shadow: 0 2px 12px #0003; }
+        .wishlist-card img { width: 120px; height: 160px; object-fit: cover; border-radius: 8px; background: #222; }
+        .wishlist-info { flex: 1; display: flex; flex-direction: column; }
+        .wishlist-title { font-size: 1.35rem; font-weight: 600; margin-bottom: 8px; }
+        .wishlist-price { font-size: 1.15rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+        .wishlist-pegi { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .wishlist-pegi-badge { background: #e53935; color: #fff; font-weight: 700; border-radius: 6px; padding: 4px 12px; font-size: 1.1rem; }
+        .wishlist-pegi-desc { color: #aaa; font-size: 0.98rem; }
+        .wishlist-epic-reward { color: #ffe082; font-size: 1.01rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .wishlist-actions { display: flex; gap: 18px; margin-top: 12px; }
+        .wishlist-remove { background: none; color: #aaa; border: none; font-size: 1.05rem; cursor: pointer; text-decoration: underline; }
+        .wishlist-addcart { background: linear-gradient(90deg,#1ba9ff 0,#3b7cff 100%); color: #fff; border: none; border-radius: 8px; padding: 10px 28px; font-size: 1.08rem; font-weight: 600; cursor: pointer; transition: background 0.18s; }
+        .wishlist-addcart:hover { background: linear-gradient(90deg,#3b7cff 0,#1ba9ff 100%); }
+        .wishlist-filters { margin-left: 32px; min-width: 220px; }
+        .wishlist-filters h3 { font-size: 1.18rem; font-weight: 600; margin-bottom: 12px; }
+        .wishlist-filters .filter-group { margin-bottom: 18px; }
+        .wishlist-filters label { color: #aaa; font-size: 1.01rem; }
+        @media (max-width: 900px) { .wishlist-card { flex-direction: column; align-items: stretch; } .wishlist-filters { margin-left: 0; margin-top: 32px; } }
+    </style>
+</head>
+<body>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+        <div class="wishlist-header">My Wishlist</div>
+        <div class="wishlist-bar">
+            <span><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="12" fill="#23262e"/><path d="M4 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8-8-3.582-8-8zm8-4a4 4 0 100 8 4 4 0 000-8z" fill="#1ba9ff"/></svg>Get notified when your wishlisted games go on sale, or are available for purchase or pre-purchase.</span>
+            <label class="wishlist-toggle"><input type="checkbox"> </label>
+        </div>
+        <div style="display: flex; gap: 32px; align-items: flex-start;">
+            <div style="flex: 1;">
+                <div class="wishlist-sort">
+                    <label for="sort">Sort by:</label>
+                    <select id="sort">
+                        <option value="on-sale">On Sale</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                    </select>
+                </div>
+                <div class="wishlist-list" id="wishlistList">
+                    <!-- Wishlist games will be rendered here -->
+                </div>
+            </div>
+          
+            </div>
+        </div>
+    </div>
+    <script src="wishlist.js"></script>
+</body>
+</html>

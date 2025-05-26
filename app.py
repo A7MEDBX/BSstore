@@ -507,19 +507,63 @@ def reject_friend_request(friend_id):
 @login_required
 def get_wishlist():
     try:
-        wishlist = Wishlist.query.all()
-        return jsonify([{'id': w.id, 'user_id': w.user_id, 'game_id': w.game_id} for w in wishlist])
+        user_id = request.user_id
+        wishes = Wishlist.query.filter_by(user_id=user_id).all()
+        games = []
+        for w in wishes:
+            game = Game.query.get(w.game_id)
+            if game:
+                games.append({
+                    'id': game.id,
+                    'title': game.title,
+                    'description': game.description,
+                    'developer': game.developer,
+                    'publisher': game.publisher,
+                    'release_date': str(game.release_date) if game.release_date else None,
+                    'image_url': game.image_url,
+                    'price': game.price,
+                    'genre': game.genre,
+                    'pegi': getattr(game, 'pegi', 18),  # fallback if not present
+                    'pegi_desc': getattr(game, 'pegi_desc', 'Violence'),
+                    # Add more fields as needed
+                })
+        return jsonify(games)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/wishlist', methods=['POST'])
 @login_required
 def create_wishlist():
-    data = request.json
-    wish = Wishlist(user_id=data['user_id'], game_id=data['game_id'])
-    db.session.add(wish)
-    db.session.commit()
-    return jsonify({'id': wish.id}), 201
+    try:
+        data = request.json
+        user_id = request.user_id
+        game_id = data.get('game_id')
+        if not game_id:
+            return jsonify({'error': 'game_id is required'}), 400
+        # Prevent duplicate
+        exists = Wishlist.query.filter_by(user_id=user_id, game_id=game_id).first()
+        if exists:
+            return jsonify({'error': 'Game already in wishlist.'}), 409
+        wish = Wishlist(user_id=user_id, game_id=game_id)
+        db.session.add(wish)
+        db.session.commit()
+        return jsonify({'id': wish.id}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/wishlist/<int:game_id>', methods=['DELETE'])
+@login_required
+def remove_from_wishlist(game_id):
+    try:
+        user_id = request.user_id
+        wish = Wishlist.query.filter_by(user_id=user_id, game_id=game_id).first()
+        if not wish:
+            return jsonify({'error': 'Game not in wishlist.'}), 404
+        db.session.delete(wish)
+        db.session.commit()
+        return jsonify({'message': 'Game removed from wishlist.'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Achievement APIs
 @app.route('/api/achievements', methods=['GET'])
