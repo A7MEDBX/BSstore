@@ -689,15 +689,7 @@ def login():
         if not user.is_verified:
             return jsonify({'error': 'Email not verified.'}), 403
         token = create_jwt_token(user.id)
-        # Return user info including role for frontend redirect
-        return jsonify({
-            'token': token,
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'role': user.role if hasattr(user, 'role') else 'user'
-            }
-        })
+        return jsonify({'token': token, 'id': user.id, 'username': user.username})
     return jsonify({'error': 'Invalid credentials'}), 401
 
 # --- LOGOUT ENDPOINT ---
@@ -1365,26 +1357,6 @@ def get_genres():
     genre_list = [g[0] for g in genres if g[0]]
     return jsonify(genre_list)
 
-@app.route('/api/games/<int:game_id>', methods=['PATCH'])
-def patch_game(game_id):
-    try:
-        game = Game.query.get_or_404(game_id)
-        data = request.json or {}
-        # Only update fields provided in the request
-        updatable_fields = ['title', 'description', 'developer', 'publisher', 'release_date', 'image_url', 'download_url', 'status', 'price', 'genre']
-        for field in updatable_fields:
-            if field in data:
-                if field == 'release_date' and data[field]:
-                    try:
-                        setattr(game, field, datetime.strptime(data[field], '%Y-%m-%d').date())
-                    except Exception:
-                        return jsonify({'error': 'release_date must be in YYYY-MM-DD format'}), 400
-                else:
-                    setattr(game, field, data[field])
-        db.session.commit()
-        return jsonify({'message': 'Game updated.', 'id': game.id}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():
