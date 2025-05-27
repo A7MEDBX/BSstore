@@ -216,31 +216,21 @@ if (editGameForm) {
 
 // When opening modal, show image preview
 function fetchGameDetails(gameId) {
-    fetch(`http://127.0.0.1:5000/api/games/${gameId}`)
-        .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch game details.');
-            return res.json();
-        })
+    fetch(`http://127.0.0.1:5000/api/allgames/${gameId}`)
+        .then(res => res.json())
         .then(game => {
-            // Defensive: handle both array and object (Supabase may return [game] or game)
-            if (Array.isArray(game)) game = game[0] || {};
-            if (!game || typeof game !== 'object') throw new Error('No game data returned.');
             document.getElementById("title").value = game.title || "";
             document.getElementById("download_url").value = game.download_url || "";
             document.getElementById("description").value = game.description || "";
             document.getElementById("genre").value = game.genre || "";
             document.getElementById("price").value = game.price || "";
             document.getElementById("status").value = game.status || "draft";
-            const approvalValue = (typeof game.approval !== 'undefined') ? game.approval : game.approved;
-            document.getElementById("approval").value = approvalValue === true ? "Approved" : "Not Approved";
+            // Fix: set approval dropdown based on boolean
+            document.getElementById("approval").value = game.approval === true ? "Approved" : "Not Approved";
             document.getElementById("image_url").value = game.image_url || "";
             document.getElementById("download_url").value = game.download_url || "";
             const preview = document.getElementById("imagePreview");
             preview.innerHTML = game.image_url ? `<img src="${game.image_url}" alt="Preview">` : "";
-        })
-        .catch(err => {
-            showPopupMessage('Failed to load game details. Please try again.', 'error');
-            console.error('Error loading game details:', err);
         });
 }
 
