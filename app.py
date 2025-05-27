@@ -1320,7 +1320,7 @@ def update_game(game_id):
         data = request.json
         game = Game.query.get_or_404(game_id)
         changed_fields = []
-        for field in ['title', 'description', 'developer', 'publisher', 'release_date', 'image_url', 'download_url', 'status', 'price', 'genre']:
+        for field in ['title', 'description', 'developer', 'publisher', 'release_date', 'image_url', 'download_url', 'status', 'price', 'genre', 'approved']:
             if field in data and getattr(game, field) != data[field]:
                 setattr(game, field, data[field])
                 changed_fields.append(field)

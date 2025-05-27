@@ -12,7 +12,7 @@ function getJwtToken() {
  */
 async function fetchGames() {
     try {
-        const response = await fetch('http://127.0.0.1:5000/api/games');
+        const response = await fetch('http://127.0.0.1:5000/api/allgames');
         if (!response.ok) throw new Error("Failed to fetch games.");
         const games = await response.json();
         renderGamesGrid(games);
@@ -176,13 +176,14 @@ if (editGameForm) {
             genre: document.getElementById("genre").value,
             price: document.getElementById("price").value,
             status: document.getElementById("status").value,
-            approval: document.getElementById("approval").value,
+            // Fix: convert approval dropdown to boolean
+            approval: document.getElementById("approval").value === "Approved",
             image_url: document.getElementById("image_url").value,
             download_url: document.getElementById("download_url").value
         };
         const token = getJwtToken();
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/allgames/${gameId}`, {
+            const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify(data)
@@ -191,10 +192,14 @@ if (editGameForm) {
                 showPopupMessage('Game updated successfully!', 'success');
                 closeEditModal();
                 fetchGames();
-            } else {
-                const error = await response.json();
-                showPopupMessage(`Error: ${error.message}`, 'error');
+                return;
             }
+            let errorMsg = 'Failed to update game. Please try again.';
+            try {
+                const error = await response.json();
+                errorMsg = `Error: ${error.message || error.error || errorMsg}`;
+            } catch {}
+            showPopupMessage(errorMsg, 'error');
         } catch (error) {
             showPopupMessage('Failed to update game. Please try again.', 'error');
         }
@@ -211,17 +216,17 @@ if (editGameForm) {
 
 // When opening modal, show image preview
 function fetchGameDetails(gameId) {
-    fetch(`http://127.0.0.1:5000/api/games/${gameId}`)
+    fetch(`http://127.0.0.1:5000/api/allgames/${gameId}`)
         .then(res => res.json())
         .then(game => {
-            // Left column: text fields
             document.getElementById("title").value = game.title || "";
             document.getElementById("download_url").value = game.download_url || "";
             document.getElementById("description").value = game.description || "";
             document.getElementById("genre").value = game.genre || "";
             document.getElementById("price").value = game.price || "";
             document.getElementById("status").value = game.status || "draft";
-            document.getElementById("approval").value = game.approval || "Not Approved";
+            // Fix: set approval dropdown based on boolean
+            document.getElementById("approval").value = game.approval === true ? "Approved" : "Not Approved";
             document.getElementById("image_url").value = game.image_url || "";
             document.getElementById("download_url").value = game.download_url || "";
             const preview = document.getElementById("imagePreview");
@@ -422,6 +427,28 @@ window.addEventListener('DOMContentLoaded', function () {
             }
         }
         addForm.style.paddingBottom = '56px';
+    }
+
+    // --- LOGOUT UTILITY ---
+    function logoutAndRedirect() {
+        // Remove all relevant cookies
+        document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        // Remove from localStorage
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('user');
+        // Redirect to login
+        window.location.href = 'login.html';
+    }
+
+    // Example: attach to a logout/sign out button if present
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) {
+        signOutBtn.onclick = function(e) {
+            e.preventDefault();
+            logoutAndRedirect();
+        };
     }
 });
 

@@ -10,6 +10,31 @@ function getJwtToken() {
 }
 
 /**
+ * Fetch all genres from the backend and populate the genre select input.
+ * @param {string} selectedGenre - The genre to select (optional)
+ */
+async function fetchAndPopulateGenres(selectedGenre = "") {
+    try {
+        const res = await fetch("http://127.0.0.1:5000/api/genres");
+        if (!res.ok) throw new Error("Failed to fetch genres");
+        const genres = await res.json();
+        const genreSelect = document.getElementById("genre");
+        if (genreSelect && Array.isArray(genres)) {
+            genreSelect.innerHTML = '';
+            genres.forEach(g => {
+                const option = document.createElement("option");
+                option.value = g.name || g;
+                option.textContent = g.name || g;
+                if ((g.name || g) === selectedGenre) option.selected = true;
+                genreSelect.appendChild(option);
+            });
+        }
+    } catch (err) {
+        // fallback: do nothing
+    }
+}
+
+/**
  * Fetch game details from the backend and populate the edit form.
  * @param {number} gameId - The ID of the game to fetch.
  */
@@ -25,10 +50,22 @@ async function fetchGameDetails(gameId) {
 
         const game = await response.json();
 
+        await fetchAndPopulateGenres(game.genre || "");
+        // Defensive: if genre is not in the dropdown, add it as an option
+        const genreSelect = document.getElementById("genre");
+        if (genreSelect) {
+            genreSelect.disabled = false;
+            if (game.genre && !Array.from(genreSelect.options).some(opt => opt.value === game.genre)) {
+                const opt = document.createElement("option");
+                opt.value = game.genre;
+                opt.textContent = game.genre;
+                genreSelect.appendChild(opt);
+            }
+            if (game.genre) genreSelect.value = game.genre;
+        }
         document.getElementById("title").value = game.title;
         document.getElementById("description").value = game.description;
         document.getElementById("price").value = game.price;
-        document.getElementById("genre").value = game.genre;
         document.getElementById("status").value = game.status;
         document.getElementById("approval").value = game.approved ? "Approved" : "Not Approved";
         document.getElementById("image_url").value = game.image_url;
@@ -56,7 +93,8 @@ document.getElementById("editGameForm").addEventListener("submit", async functio
     const formData = {
         title: document.getElementById("title").value,
         description: document.getElementById("description").value,
-        genre: document.getElementById("genre").value,
+        // Only include genre if not empty
+        ...(document.getElementById("genre").value ? { genre: document.getElementById("genre").value } : {}),
         price: document.getElementById("price").value,
         status: document.getElementById("status").value,
         approved: document.getElementById("approval").value === "Approved",
@@ -84,7 +122,7 @@ document.getElementById("editGameForm").addEventListener("submit", async functio
         }
     } catch (error) {
         console.error("Error updating game:", error);
-        alert("Failed to update the game. Please try again.");
+      //  alert("Failed to update the game. Please try again.");
     }
 });
 
@@ -108,9 +146,8 @@ function goBack() {
     window.history.back();
 }
 
-// Fetch game details on page load
+// On page load, fetch game details (which will load genres)
 const gameId = new URLSearchParams(window.location.search).get("id");
 if (gameId) {
-    console.log("Game ID in openEditModal:", gameId);
     fetchGameDetails(gameId);
 }
