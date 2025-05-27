@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             localStorage.removeItem('jwt_token');
             localStorage.removeItem('user');
-            window.location.href = 'login.html';
+            window.location.href = 'index.html';
         });
     }
     const registerBtn = document.getElementById('registerBtn');
@@ -312,13 +312,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const adventuresContainer = document.querySelector('.adventure-cards');
                 if (!adventuresContainer) return;
                 adventuresContainer.innerHTML = '';
-                // Filter unapproved games
+                // Filter unapproved games and robustly exclude all free games (price 'free', 0, '0', '0.00', 0.00, etc)
                 const unapproved = games.filter(g => {
                     const approved = g.approved;
                     const status = (g.status || '').toLowerCase();
+                    const isFree = String(g.price).trim().toLowerCase() === 'free' || Number(g.price) === 0;
                     return (
-                        approved === false || approved === 0 || approved === '0' || approved === 'false' || approved === null || typeof approved === 'undefined' ||
-                        status === 'pending' || status === 'not approved' || status === 'unapproved' || status === 'waiting' || status === 'awaiting approval'
+                        (approved === false || approved === 0 || approved === '0' || approved === 'false' || approved === null || typeof approved === 'undefined' ||
+                        status === 'pending' || status === 'not approved' || status === 'unapproved' || status === 'waiting' || status === 'awaiting approval')
+                        && !isFree
                     );
                 });
                 // Sort by newest (assuming higher id = newer)
