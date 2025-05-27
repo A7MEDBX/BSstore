@@ -199,6 +199,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 function showFeatured(idx) {
                     const game = featuredGames[idx];
                     heroContent.querySelector('h2').textContent = game.title;
+                    // Display genre from DB if available
+                    const genreElem = heroContent.querySelector('.hero-genre');
+                    if (genreElem) {
+                        genreElem.textContent = game.genre ? game.genre : '';
+                    }
                     // Set up Read More button to show modal
                     const readMoreBtn = document.getElementById('heroReadMoreBtn');
                     if (readMoreBtn) {
