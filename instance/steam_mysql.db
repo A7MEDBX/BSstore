@@ -1,0 +1,236 @@
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS achievement (
+	id INTEGER NOT NULL, 
+	name VARCHAR(120) NOT NULL, 
+	description TEXT, 
+	PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS alembic_version (
+	version_num VARCHAR(32) NOT NULL, 
+	CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+);
+CREATE TABLE IF NOT EXISTS cart_item (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	added_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+CREATE TABLE IF NOT EXISTS category (
+	id INTEGER NOT NULL, 
+	name VARCHAR(80) NOT NULL, 
+	PRIMARY KEY (id), 
+	UNIQUE (name)
+);
+CREATE TABLE IF NOT EXISTS friend (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	friend_id INTEGER NOT NULL, 
+	status VARCHAR(20), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(friend_id) REFERENCES user (id)
+);
+CREATE TABLE IF NOT EXISTS game (
+	id INTEGER NOT NULL, 
+	title VARCHAR(120) NOT NULL, 
+	description TEXT, 
+	developer VARCHAR(120), 
+	publisher VARCHAR(120), 
+	release_date DATE, 
+	image_url VARCHAR(255), 
+	download_url VARCHAR(255), 
+	approved BOOLEAN, 
+	status VARCHAR(32), 
+	price FLOAT, genre VARCHAR(80), 
+	PRIMARY KEY (id)
+);
+CREATE TABLE IF NOT EXISTS game_achievement (
+	id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	achievement_id INTEGER NOT NULL, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id), 
+	FOREIGN KEY(achievement_id) REFERENCES achievement (id)
+);
+CREATE TABLE IF NOT EXISTS game_category (
+	game_id INTEGER NOT NULL, 
+	category_id INTEGER NOT NULL, 
+	PRIMARY KEY (game_id, category_id), 
+	FOREIGN KEY(game_id) REFERENCES game (id), 
+	FOREIGN KEY(category_id) REFERENCES category (id)
+);
+CREATE TABLE IF NOT EXISTS game_image (
+	id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	image_url VARCHAR(255) NOT NULL, 
+	uploaded_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+CREATE TABLE IF NOT EXISTS inventory (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	game_id INTEGER, 
+	item_type VARCHAR(50), 
+	item_name VARCHAR(120), 
+	trade_status VARCHAR(20), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+CREATE TABLE IF NOT EXISTS offer (
+	id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	discount_percent FLOAT NOT NULL, 
+	start_date DATETIME NOT NULL, 
+	end_date DATETIME NOT NULL, 
+	message VARCHAR(255), 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+CREATE TABLE IF NOT EXISTS payment_method (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	method_type VARCHAR(50) NOT NULL, 
+	card_last4 VARCHAR(4), 
+	card_expiry VARCHAR(7), 
+	card_brand VARCHAR(20), 
+	paypal_email VARCHAR(120), 
+	details_encrypted TEXT, 
+	is_default BOOLEAN, 
+	added_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id)
+);
+CREATE TABLE IF NOT EXISTS purchase (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	purchase_date DATETIME, 
+	price FLOAT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+CREATE TABLE IF NOT EXISTS review (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	rating INTEGER, 
+	comment TEXT, 
+	review_date DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+CREATE TABLE IF NOT EXISTS support_ticket (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	issue_type VARCHAR(100), 
+	status VARCHAR(20), 
+	message TEXT, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id)
+);
+CREATE TABLE IF NOT EXISTS user (
+	id INTEGER NOT NULL, 
+	username VARCHAR(80) NOT NULL, 
+	email VARCHAR(120) NOT NULL, 
+	password_hash VARCHAR(128) NOT NULL, 
+	is_verified BOOLEAN, 
+	verification_token VARCHAR(128), 
+	role VARCHAR(20), 
+	is_active BOOLEAN, 
+	otp_code VARCHAR(10), 
+	otp_expiry DATETIME, 
+	PRIMARY KEY (id), 
+	UNIQUE (username), 
+	UNIQUE (email)
+);
+CREATE TABLE IF NOT EXISTS user_achievement (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	achievement_id INTEGER NOT NULL, 
+	date_unlocked DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(achievement_id) REFERENCES achievement (id)
+);
+CREATE TABLE IF NOT EXISTS user_history (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	action VARCHAR(100) NOT NULL, 
+	details TEXT, 
+	timestamp DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id)
+);
+CREATE TABLE IF NOT EXISTS user_library (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	acquisition_date DATETIME, 
+	playtime INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+CREATE TABLE IF NOT EXISTS wishlist (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	game_id INTEGER NOT NULL, 
+	date_added DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES user (id), 
+	FOREIGN KEY(game_id) REFERENCES game (id)
+);
+INSERT INTO "alembic_version" ("version_num") VALUES ('75f9e1e11eb7');
+INSERT INTO "cart_item" ("id","user_id","game_id","added_at") VALUES (3,2,1,'2025-05-23 18:29:58.403179'),
+ (4,3,3,'2025-05-23 18:44:50.154647'),
+ (5,8,4,'2025-05-25 23:22:26.661107'),
+ (7,1,14,'2025-05-26 10:16:34.475923');
+INSERT INTO "game" ("id","title","description","developer","publisher","release_date","image_url","download_url","approved","status","price","genre") VALUES (1,'Silent Hill 2','A fun new game.','Game Studio','Game Publisher','2025-05-23','https://upload.wikimedia.org/wikipedia/en/thumb/c/c1/Silent_Hill_2_remake_cover.jpg/250px-Silent_Hill_2_remake_cover.jpg','magnet:?xt=urn:btih:FB88F26BD640E0C43A7503419568E12BE21A9098&dn=Silent+Hill+2%3A+Digital+Deluxe+Edition+%28v1.1.236.114+%2B+4+DLCs%2FBonuses%2C+MULTi14%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+25.4+GB%5D&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.theoks.net%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=https%3A%2F%2Ftracker.tamersunion.org%3A443%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Fbt2.archive.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fbt1.archive.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.filemail.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker1.bt.moack.co.kr%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce',1,'published',0.0,'Horror'),
+ (2,'Yakuza 0','A fun new game.','Game Studio','Game Publisher','2025-05-23','https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRasAbOZBJhRiJFBHWA6k5zR0rsQKotrFNlTQ&s','magnet:?xt=urn:btih:32CE39D73291FCFEEE1EC4CB3C750D51065B95B6',1,'published',20.0,'Action'),
+ (3,'Detroit: Become Human','A fun new game.','Game Studio','Game Publisher','2025-05-23','https://cdn1.epicgames.com/columbine/offer/DETROIT2-860x1148-a03ac8673f779b286dcccc83dbe75249.jpg','magnet:?xt=urn:btih:F738BE4F768899E0F65BA64D7FE1568BCDB89678&dn=Detroit%3A+Become+Human+%28v20211117%2FBuild+7662975+%2B+Windows+7+Fix%2C+MULTi24%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+22.1+GB%5D&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Fopentor.org%3A2710&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Fretracker.lanta-net.ru%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.moeking.me%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.tiny-vps.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce',1,'published',20.0,'Drama'),
+ (4,'Sonic Unleashed','A fun new game.','Game Studio','Game Publisher','2025-05-23','data:image/jpeg;base64,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','magnet:?xt=urn:btih:C5D79DD221880B163DDBD05584256757C8AC1FDB&dn=Sonic+Unleashed+%28%2B+All+DLCs%2C+Recompiled+for+PC%2C+MULTi6%29+%5BFitGirl+Repack%5D&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.theoks.net%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=https%3A%2F%2Ftracker.tamersunion.org%3A443%2Fannounce&tr=udp%3A%2F%2Fexplodie.org%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.bt4g.com%3A2095%2Fannounce&tr=udp%3A%2F%2Fbt2.archive.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fbt1.archive.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.filemail.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker1.bt.moack.co.kr%3A80%2Fannounce&tr=http%3A%2F%2Fopen.acgnxtracker.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce',1,'published',25.0,'Platform'),
+ (5,'Elden Ring','A fun new game.','Game Studio','Game Publisher','2025-05-23','https://assets-prd.ignimgs.com/2021/06/12/elden-ring-button-03-1623460560664.jpg','magnet:?xt=urn:btih:4CC8E331E699748269F6AC1B98B802684F5AC97A&dn=ELDEN+RING%3A+Shadow+of+the+Erdtree+Deluxe+Edition+%28v1.12%2Fv1.12.1+%2B+9+DLCs%2FBonuses+%2B+Windows+7+Fix%2C+MULTi14%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+47.4+GB%5D&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.gbitt.info%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.theoks.net%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.tamersunion.org%3A443%2Fannounce&tr=http%3A%2F%2Fopen.acgnxtracker.com%3A80%2Fannounce&tr=http%3A%2F%2Fopen.acgtracker.com%3A1096%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce',1,'published',30.0,'Platform'),
+ (6,'Uncharted 4','A fun new game.','Game Studio','Game Publisher','2025-05-23','https://m.media-amazon.com/images/M/MV5BNTFmN2M0MGMtMTI5Ny00NzRlLWFlZGYtZDM0N2VmOTUwYTdmXkEyXkFqcGc@._V1_.jpg','magnet:?xt=urn:btih:963A0879AF19DEB41A155EA5B9C0627397022D9B&dn=UNCHARTED%3A+Legacy+of+Thieves+Collection+%28v1.0.20122+%2B+Bonus+OSTs%2C+MULTi21%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+19.6+GB%5D&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Fopentor.org%3A2710&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Fretracker.lanta-net.ru%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.moeking.me%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.tiny-vps.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce',0,'published',40.0,'Action'),
+ (10,'Fifa 23','A fun new game.','Game Studio','Game Publisher','2025-05-23','https://wallpapercave.com/wp/wp11326334.jpg','magnet:?xt=urn:btih:50B8BCF39D789FB5469E1FB6B8CAB629F44E7F66&dn=EA+SPORTS+FIFA+23+%28v1.0.82.43747+%2B+World+Cup+LE+Fix+%2B+3+Bonus+Soundtracks%2C+MULTi21%29+%5BFitGirl+Monkey+Repack%2C+Selective+Download+-+from+39.1+GB%5D&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=http%3A%2F%2Ftracker.gbitt.info%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.theoks.net%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.tamersunion.org%3A443%2Fannounce&tr=http%3A%2F%2Fopen.acgnxtracker.com%3A80%2Fannounce&tr=http%3A%2F%2Fopen.acgtracker.com%3A1096%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce',0,'published',67.0,'Sport'),
+ (11,'Need for Speed: Hot Pursuit','The next phase of loyalty in EA SPORTS FC™ 25. Available to fans that have played EA SPORTS FC™ 24 before 27 September 2024 and play EA SPORTS FC™ 25 before November 1st, 2024*.','Game Studio','Game Publisher','2025-05-23','https://i3.imageban.ru/out/2024/04/04/21daa41ac80fc51fa8a62708124a6465.jpg','magnet:?xt=urn:btih:1DE70C3D975C27645E68E331A1F7D266D871AD78&dn=Need+for+Speed%3A+Hot+Pursuit+Remastered+%28v1.0.3+%2B+Yuzu+Emu+for+PC%2C+MULTi10%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+3.2+GB%5D&tr=udp%3A%2F%2F46.148.18.250%3A2710&tr=udp%3A%2F%2Fopentor.org%3A2710&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2730%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2770%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=http%3A%2F%2Fretracker.local%2Fannounce&tr=http%3A%2F%2Fretracker.ip.ncnet.ru%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce',0,'published',18.0,'Sport'),
+ (13,'RDR2','Based on Red_Dead_Redemption_2_Ultimate_Edition-Razor1911 ISO release: rzr-reddeadredemption2.iso (128,253,820,928 bytes) No-intro Launcher.exe applied over, thanks to machine4578! Original Razor’s one preserved for purists in the root folder Game version is Build 1491.50 All offline “DLCs” of Ultimate Edition are included, but must be activated with a special unlocking file – check “readme.txt” in the “_Unlocker” after installation 100% Lossless & MD5 Perfect: all files are identical to originals after installation NOTHING ripped, NOTHING re-encoded Significantly smaller archive size (compressed from 119.4 to 68.8 GB) Installation takes: ~1 hour (24-threads CPU + SSD); ~1 hour 50 minutes (16-threads CPU + HDD); up to 5 hours (4-threads CPU + HDD) After-install integrity check so you could make sure that everything installed properly HDD space after installation: 119.3 GB Language is automatically set by detecting your system locale. To force specific language, run one of “Force” language BAT-files in the game root Use ONLY “Launcher.exe” in the game root to launch the game Repack uses compression library by Razor12911 At least 3 GB of free RAM (inc. virtual) required for installing this repack','Game Studio','Game Publisher','2025-05-23','https://wallpapercave.com/wp/wp3770429.png','magnet:?xt=urn:btih:18A89755E51616C9E8E904FF360E364DEB4B0922&dn=Red+Dead+Redemption+2%3A+Ultimate+Edition+%28Build+1491.50+%2B+UE+Unlocker%2C+MULTi13%29+%5BFitGirl+Repack%5D&tr=udp%3A%2F%2Fopentor.net%3A6969&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.gbitt.info%3A80%2Fannounce&tr=http%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.ccp.ovh%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.torrent.eu.org%3A451%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.theoks.net%3A6969%2Fannounce&tr=https%3A%2F%2Ftracker.tamersunion.org%3A443%2Fannounce&tr=http%3A%2F%2Fopen.acgnxtracker.com%3A80%2Fannounce&tr=http%3A%2F%2Fopen.acgtracker.com%3A1096%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce',1,'published',80.0,'Action'),
+ (14,'Persona 5','ABSOLUTE CINEMA','Atlus','Sega','2025-05-23','https://i.redd.it/dajomsl5wqw91.jpg','magnet:?xt=urn:btih:FDD7770045795928CEEB262AB785081BF0B51BCA&dn=Persona+5+%28%2B+29+DLCs+%2B+OST+%2B+RPCS3+Emu+%2B+Essential%2FHD%2F4K+Mods%2C+MULTi3%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+8.6+GB%5D&tr=udp%3A%2F%2F46.148.18.250%3A2710&tr=udp%3A%2F%2Fopentor.org%3A2710&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2730%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2770%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=http%3A%2F%2Fretracker.local%2Fannounce&tr=http%3A%2F%2Fretracker.ip.ncnet.ru%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce',1,'published',100.0,'Action'),
+ (17,'Sekiro','Best sols Game',NULL,NULL,'2018-06-13','https://i2.imageban.ru/out/2024/04/01/b999979347fdc64b8bfae2645d4001bc.jpg','magnet:?xt=urn:btih:072BA1C165E0D528D2E23EA0FCD35E066D3FCDAA&dn=Sekiro%3A+Shadows+Die+Twice+-+Game+of+the+Year+Edition+%28v1.06+%2B+Bonus+Content%2C+MULTi13%29+%5BFitGirl+Repack%2C+Selective+Download+-+from+7.2+GB%5D&tr=udp%3A%2F%2F46.148.18.250%3A2710&tr=udp%3A%2F%2Fopentor.org%3A2710&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce&tr=http%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2F9.rarbg.me%3A2730%2Fannounce&tr=udp%3A%2F%2F9.rarbg.to%3A2770%2Fannounce&tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&tr=http%3A%2F%2Fretracker.local%2Fannounce&tr=http%3A%2F%2Fretracker.ip.ncnet.ru%2Fannounce&tr=udp%3A%2F%2Fexodus.desync.com%3A6969%2Fannounce&tr=udp%3A%2F%2Fipv4.tracker.harry.lu%3A80%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.zer0day.to%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fcoppersurfer.tk%3A6969%2Fannounce',1,'published',82.0,'Souls');
+INSERT INTO "user" ("id","username","email","password_hash","is_verified","verification_token","role","is_active","otp_code","otp_expiry") VALUES (1,'a','ahmedbod50@gmail.com','scrypt:32768:8:1$BMOPwJg5MVXac5gY$0085afab5eda3a5d0a0718b7338eae8163b1ae57f2f0e7467cf4bed22edeb6eb8be124cafbd48de8c6c8d123370370abeb95ae5a7bfeccdc952cf79497904187',1,NULL,'admin',1,'115590','2025-05-26 11:11:52.876129'),
+ (2,'bebo','alsharefbebo@gmail.com','scrypt:32768:8:1$v18IuHrSB4WtWhTz$87a007088b59d1bef75f441ab08e9c9afd412016cd50404039a0de02004b5eee084ac470db0120cb5d92ea2c9c0556759fd8fd766f919d04529349f25fb388ee',1,NULL,'user',1,NULL,NULL),
+ (3,'mohsen','mohsenragab11@gmail.com','scrypt:32768:8:1$kV926r7sLisViQmX$845dcf5718bfaed97989abe934f350f33eaa7e5323fd9e9d14fc001d6f85b30eefacdb275a6f0f3aab99be107af8946e0f562a269f46cfc921a8f7d8b00b854f',1,NULL,'user',1,NULL,NULL),
+ (4,'sou','souhailahaggag25@gmail.com','scrypt:32768:8:1$T8c0HMeq1lAlNQXH$f10bb05f0285752be7cde163e450b3fe021e15096c1db485595aeb05f52b395c862e573385f8b145c397d2c6d04144da6137f4d19df460067973ebef523c3768',1,NULL,'user',1,NULL,NULL),
+ (5,'rr','ahmedrbod50@gmail.com','scrypt:32768:8:1$9qyPj69Ohrp6xWS9$752134efee238bf1024b63c945d4706c575c977d4f811f0fe5c3d6607a88f314f4dd5a03cb7b8ad5990b5a0e7899dbe9c4947f5b6ebadbacb658801e48c6f338',0,NULL,'user',1,'107498','2025-05-25 16:48:22.785852'),
+ (6,'HusseinTDM','minecrafthusseintdm@gmail.com','scrypt:32768:8:1$lhlWGZW3zYm3oZNi$bca30cd56ecf401d60c6430f16424cb3754851645cb32ba5c9f9759a7d67bcc16c7b267f8dda0e3b39fb9bad8bb68ecc61c57a3c7375a19a3cb0faae12b97871',1,NULL,'user',1,'897383','2025-05-25 19:41:06.264461'),
+ (7,'ahmed','gridnewaksenia@cardosoadvogadoassociados.com','scrypt:32768:8:1$v8JniHxDjO4UQFDS$a7428c215aa7e28897a55facfe62cfe864145d9925cba1ba112ca4711534eef09068bec285c79a1d14402ffca2720970bb0632ac61bb91bb40c4086df28c1ed3',1,NULL,'user',1,NULL,NULL),
+ (8,'Atta1','atta12345246@gmail.com','scrypt:32768:8:1$1DYDrOs4KrdSZrL0$85b3db6c8b8f4632e46f82034d273695c65c64a31e7e1a751df6afe7c6aa8f7830d9197a9b33d68f8ed48f256f2049bbc0e95a78a8fd30ab5b0b1d9aec5d6585',1,NULL,'user',1,NULL,NULL),
+ (9,'aa','ahmedbod0@gmail.com','scrypt:32768:8:1$Rk5d1h9s1x6movG9$0dc79cb5a145e028d5c701b3edd6b1f5e6966c599dcc0084509e3fc6f37303aa71d5b725b0f22d0a64f6ccf6249fb2c6ac9ddc96d7fb4d76d409cd39ddf8f2e0',0,NULL,'user',1,'948723','2025-05-26 11:09:41.050532'),
+ (10,'aaaa','ahmeadbod50@gmail.com','scrypt:32768:8:1$i5qomOwgLz6jBBXa$b6e63bbdb2ff3c8009fce901d04ca0531ed3921af4c330b3e72db0b21cafc9324f1fa08f2f7ebeff97b873207a90a1c489b5f3f537240c76f0cb4a2ddc3c7b0c',0,NULL,'user',1,'182195','2025-05-26 11:12:33.839879'),
+ (11,'t','xixoge5894@ofular.com','scrypt:32768:8:1$PVAumgzGkVMOI4cY$285716375fda0cd9e56dd98cfd77fc8b81cb72d603f0d6a44eaf42ba3c6c8e7f9f5d973701abc7b17581e4c731a609fd1bd80ebcd87f4e77a7bba2c7256515f7',0,NULL,'user',1,'716164','2025-05-27 12:01:13.272871'),
+ (12,'tt','rkim9696@savemydinar.com','scrypt:32768:8:1$tEj7ic1Y0fwCywRG$c527e6ab1a83b688384a54cd5cd36ee2265abb2d9e6df2ed2255be9ea081484de00037ce73858708bcd86a083ce79d47fb296acaf8a800a1655ac8a10c2f4b2c',1,NULL,'user',1,NULL,NULL);
+INSERT INTO "user_library" ("id","user_id","game_id","acquisition_date","playtime") VALUES (1,1,1,NULL,NULL),
+ (2,1,2,NULL,NULL),
+ (4,1,6,NULL,NULL),
+ (5,1,5,NULL,NULL),
+ (6,1,4,NULL,NULL),
+ (7,5,1,NULL,NULL),
+ (8,5,2,NULL,NULL),
+ (9,5,13,NULL,NULL),
+ (10,1,13,NULL,NULL),
+ (11,1,10,NULL,NULL),
+ (12,8,1,NULL,NULL),
+ (13,1,12,NULL,NULL),
+ (14,1,17,NULL,NULL),
+ (15,1,16,NULL,NULL),
+ (16,12,1,NULL,NULL);
+INSERT INTO "wishlist" ("id","user_id","game_id","date_added") VALUES (2,1,2,NULL);
+COMMIT;

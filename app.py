@@ -29,16 +29,19 @@ import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 from flask_swagger_ui import get_swaggerui_blueprint
 import random
-from models import db, User, Game, Category, Purchase, Review, UserLibrary, Friend, Wishlist, Achievement, GameAchievement, UserAchievement, Inventory, SupportTicket, GameImage, CartItem
-from flask_migrate import Migrate
+from supabase import create_client, Client
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///steam_clone.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db.init_app(app)
-migrate = Migrate(app, db)
+# --- SUPABASE CONNECTION ---
+SUPABASE_URL = "https://ibelidjmkkwacgqtkvcb.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliZWxpZGpta2t3YWNncXRrdmNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4ODU2MzMsImV4cCI6MjA2MjQ2MTYzM30.DKO3dhO4ha1jzZMaQfhpfzeFzahK1HjsTeSPcctgVzE"  # Replace with your actual Supabase service role key
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+print('DEBUG: SUPABASE_URL =', SUPABASE_URL)
+# --- END SUPABASE CONNECTION ---
+
+# --- APP CONFIGURATION ---
 
 mail = Mail(app)
 
@@ -58,7 +61,8 @@ CORS(app, supports_credentials=True,
          "http://localhost:3000", "http://127.0.0.1:3000",
          "http://localhost:5500", "http://127.0.0.1:5500",
          "http://localhost:5700", "http://127.0.0.1:5700",
-         "http://localhost", "http://127.0.0.1"
+         "http://localhost", "http://127.0.0.1",
+         "https://bsstore.netlify.app"  # Added Netlify frontend for CORS
      ],
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH","PATCH"])
@@ -73,7 +77,7 @@ JWT_SECRET = 'your_jwt_secret_key'  # Change this to a secure value in productio
 JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 3600  # 1 hour
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'images', 'games')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'images', 'game')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -116,24 +120,62 @@ def get_token_from_header():
     return auth_header.split(' ')[1]
 
 # Update login_required to check blacklist
+def get_user_by_id_supabase(user_id):
+    """Helper to fetch a user from Supabase by ID."""
+    try:
+        # Use the 'user' table (singular)
+        response = supabase.table('user').select('*').eq('id', user_id).maybe_single().execute()
+        
+        # Important: Check for errors during fetch
+        if getattr(response, 'error', None):
+            print(f"Supabase error fetching user {user_id}: {response.error.message}")
+            return None
+            
+        return response.data # Will be the user dictionary or None
+    except Exception as e:
+        print(f"Python Error fetching user {user_id}: {e}")
+        traceback.print_exc() # Print full traceback for debugging
+        return None
+
+# --- THIS IS THE CORRECT SUPABASE VERSION ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        print("\n--- ENTERING @login_required (Supabase Version) ---") # Logging
         token = get_token_from_header()
+        print(f"Token from header: {token}") # Logging
+
         if not token:
+            print("FAIL: No token or bad format.") # Logging
             return jsonify({'error': 'Authorization header missing or invalid'}), 401
+
         if token in jwt_blacklist:
+            print(f"FAIL: Token {token} is blacklisted.") # Logging
             return jsonify({'error': 'Token has been revoked. Please log in again.'}), 401
+
         user_id = decode_jwt_token(token)
+        print(f"Decoded User ID: {user_id}") # Logging
+
         if not user_id:
+            print("FAIL: Invalid or expired token.") # Logging
             return jsonify({'error': 'Invalid or expired token'}), 401
-        user = User.query.get(user_id)
+
+        # --- THIS IS THE KEY CHANGE ---
+        # Fetch user from Supabase, not SQLAlchemy
+        user = get_user_by_id_supabase(user_id) 
+        print(f"User from Supabase: {user}") # Logging
+        # --- END KEY CHANGE ---
+
         if not user:
+            print(f"FAIL: User ID {user_id} not found in DB.") # Logging
             return jsonify({'error': 'User not found.'}), 401
+
+        print("--- SUCCESS: User Authenticated ---") # Logging
+        # Set both user_id and the full user dictionary for other routes
         request.user_id = user_id
+        request.user = user  # <-- This is important for /api/me
         return f(*args, **kwargs)
     return decorated_function
-
 # Decorator: Rate limit
 # Helper: Role-based access decorator
 def role_required(*roles):
@@ -159,134 +201,234 @@ def serve_verify_html():
 @app.route('/api/users', methods=['GET'])
 def get_users():
     try:
-        users = User.query.all()
-        return jsonify([{'id': u.id, 'username': u.username, 'email': u.email} for u in users])
+        response = supabase.table('user').select('*').execute()
+        return jsonify(response.data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/users', methods=['POST'])
 def create_user():
+    """
+    Creates a new user in Supabase. 
+    NOTE: This is DIFFERENT from /api/register. It expects a password 
+    (and hashes it) but does NOT send an OTP verification email. 
+    Consider if /api/register is more appropriate for general use.
+    This endpoint assumes the input contains 'password', not 'password_hash'.
+    """
     try:
         data = request.json
-        if User.query.filter_by(username=data['username']).first() or User.query.filter_by(email=data['email']).first():
-            return jsonify({'error': 'Username or email already exists.'}), 400
-        user = User(username=data['username'], email=data['email'], password_hash=data['password_hash'])
-        db.session.add(user)
-        db.session.commit()
-        # Log history
-        from models import UserHistory
-        history = UserHistory(user_id=user.id, action='account_created', details=f'User {user.username} created an account.')
-        db.session.add(history)
-        db.session.commit()
-        return jsonify({'id': user.id, 'username': user.username, 'email': user.email}), 201
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password') # Expecting 'password', will hash it.
+
+        # --- Input Validation ---
+        if not all([username, email, password]):
+            return jsonify({'error': 'Username, email, and password are required.'}), 400
+
+        # --- Check if user exists ---
+        check_response = supabase.table('user').select('id').or_(f"username.eq.{username},email.eq.{email}").execute()
         
+        if check_response.error:
+             print(f"Supabase Error checking user: {check_response.error.message}")
+             return jsonify({'error': 'Database error checking user', 'details': check_response.error.message}), 500
+
+        if check_response.data:
+            return jsonify({'error': 'Username or email already exists.'}), 400
+
+        # --- Hash the password ---
+        hashed_password = generate_password_hash(password)
+
+        # --- Prepare user data for Supabase ---
+        user_data = {
+            'username': username,
+            'email': email,
+            'password_hash': hashed_password,
+            'is_verified': data.get('is_verified', False), # Default to False unless specified
+            'role': data.get('role', 'user') # Default to 'user' role
+            # Add any other default fields needed for your 'users' table
+        }
+
+        # --- Insert user into Supabase ---
+        insert_response = supabase.table('user').insert(user_data).execute()
+
+        if insert_response.error:
+            print(f"Supabase Error creating user: {insert_response.error.message}")
+            return jsonify({'error': 'Failed to create user', 'details': insert_response.error.message}), 500
+
+        if not insert_response.data:
+            return jsonify({'error': 'Failed to create user, no data returned.'}), 500
+            
+        # --- User created, now log history ---
+        user = insert_response.data[0]
+        user_id = user.get('id')
+        username = user.get('username')
+
+        history_data = {
+            'user_id': user_id,
+            'action': 'account_created',
+            'details': f'User {username} created an account.'
+            # 'timestamp' will usually be set by default in Supabase (now())
+        }
+        
+        # Insert history (best effort, don't fail user creation if this fails)
+        history_response = supabase.table('userhistory').insert(history_data).execute()
+        if history_response.error:
+            print(f"Warning: User {user_id} created, but failed to log history: {history_response.error.message}")
+
+        # --- Return success response ---
+        return jsonify({'id': user_id, 'username': username, 'email': user.get('email')}), 201
+
+    except Exception as e:
+        # Catch any other unexpected Python errors.
+        print("Flask/Python Error creating user:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
+      
 @app.route('/api/allgames', methods=['GET'])
 def allgames():
     try:
-        games = Game.query.all()
+        response = supabase.table('game').select('*').execute()
+        games = response.data
         return jsonify([
             {
-                'id': g.id,
-                'title': g.title,
-                'description': g.description,
-                'developer': g.developer,
-                'publisher': g.publisher,
-                'release_date': str(g.release_date) if g.release_date else None,
-                'image_url': g.image_url,
-                'download_url': g.download_url,
-                'approved': g.approved,
-                'status': g.status,
-                'price': g.price,
-                'genre': g.genre  # <-- Add genre to API response
+                'id': g.get('id'),
+                'title': g.get('title'),
+                'description': g.get('description'),
+                'developer': g.get('developer'),
+                'publisher': g.get('publisher'),
+                'release_date': g.get('release_date'),
+                'image_url': g.get('image_url'),
+                'download_url': g.get('download_url'),
+                'approved': g.get('approved'),
+                'status': g.get('status'),
+                'price': g.get('price'),
+                'genre': g.get('genre')
             } for g in games
         ])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # Game APIs
+
+from flask import Flask, jsonify, request
+from supabase import create_client, Client
+import traceback
+
+# --- (Assuming app and supabase are defined) ---
+
+# --- GET APPROVED GAMES LIST ---
 @app.route('/api/games', methods=['GET'])
 def get_games():
+    """
+    Fetches a list of games from the 'game' table WHERE 'approved' is True.
+    """
     try:
-        games = Game.query.filter_by(approved=True).all()
-        return jsonify([
-            {
-                'id': g.id,
-                'title': g.title,
-                'description': g.description,
-                'developer': g.developer,
-                'publisher': g.publisher,
-                'release_date': str(g.release_date) if g.release_date else None,
-                'image_url': g.image_url,
-                'download_url': g.download_url,
-                'approved': g.approved,
-                'status': g.status,
-                'price': g.price,
-                'genre': g.genre  # <-- Add genre to API response
-            } for g in games
-        ])
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        # Use 'game' table and filter for approved.
+        response = supabase.table('game').select('*').eq('approved', True).execute()
 
+       
+        # Check for Supabase errors FIRST
+        if getattr(response, 'error', None):
+            print(f"Supabase Error: {response.error.message}")
+            return jsonify({'error': 'Database operation failed', 'details': response.error.message}), 500
+            
+        # If no error, return the data (or an empty list if no approved games found)
+        return jsonify(response.data or []), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
+
+# --- GET SINGLE GAME BY ID ---
+@app.route('/api/games/<int:game_id>', methods=['GET'])
+def get_game_details(game_id): # Renamed for consistency
+    """
+    Fetch a single game by ID from the 'game' table.
+    """
+    try:
+        # Use 'game' table and filter by id.
+        response = supabase.table('game').select('*').eq('id', game_id).execute()
+
+        print(f"--- Supabase Response for /api/games/{game_id} ---")
+        print(f"Data: {response.data}")
+        print(f"Error: {getattr(response, 'error', 'N/A')}") # Safely check for error
+        print("-----------------------------------------")
+
+        # Check for Supabase errors FIRST
+        if getattr(response, 'error', None):
+            print(f"Supabase Error: {response.error.message}")
+            return jsonify({'error': 'Database operation failed', 'details': response.error.message}), 500
+
+        # Check if data exists and is not empty
+        if response.data:
+            game = response.data[0]
+            # Return the single game dictionary
+            return jsonify(game), 200
+        else:
+            # No data found, return 404
+            return jsonify({'error': 'Game not found'}), 404
+            
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
 # Company uploads a game (pending approval)
 @app.route('/api/games', methods=['POST'])
 @login_required
 @role_required('admin')
 def create_game():
-    data = request.json
-    # Parse release_date as a Python date object if provided
-    release_date = data.get('release_date')
-    if (release_date):
-        try:
-            release_date = datetime.strptime(release_date, '%Y-%m-%d').date()
-        except Exception:
-            return jsonify({'error': 'release_date must be in YYYY-MM-DD format'}), 400
-    game = Game(
-        title=data.get('title'),
-        description=data.get('description'),
-        developer=data.get('developer'),
-        publisher=data.get('publisher'),
-        release_date=release_date,
-        image_url=data.get('image_url'),
-        download_url=data.get('download_url'),
-        approved=True,
-        status=data.get('status', 'draft'),
-        price=data.get('price')
-    )
-    db.session.add(game)
-    db.session.commit()
-    return jsonify({'id': game.id, 'title': game.title, 'description': game.description, 'developer': game.developer, 'publisher': game.publisher, 'release_date': str(game.release_date), 'image_url': game.image_url, 'download_url': game.download_url, 'approved': game.approved, 'status': game.status, 'price': game.price}), 201
+    try:
+        data = request.json
+        # Parse release_date as a Python date object if provided
+        release_date = data.get('release_date')
+        if release_date:
+            try:
+                release_date = datetime.strptime(release_date, '%Y-%m-%d').date().isoformat()
+            except Exception:
+                return jsonify({'error': 'release_date must be in YYYY-MM-DD format'}), 400
 
-@app.route('/api/games/<int:game_id>/upload_image', methods=['POST'])
-@login_required
-@role_required('company')
-def upload_game_image(game_id):
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image file provided.'}), 400
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file.'}), 400
-    if file and allowed_file(file.filename):
-        # Upload to Cloudinary
-        upload_result = cloudinary.uploader.upload(file, public_id=f"game_{game_id}_{file.filename}")
-        image_url = upload_result["secure_url"]
-        # Save URL to DB
-        game = Game.query.get_or_404(game_id)
-        game.image_url = image_url
-        db.session.commit()
-        return jsonify({'image_url': game.image_url}), 200
-    return jsonify({'error': 'Invalid file type.'}), 400
+        game_data = {
+            'title': data.get('title'),
+            'description': data.get('description'),
+            'developer': data.get('developer'),
+            'publisher': data.get('publisher'),
+            'release_date': release_date,
+            'image_url': data.get('image_url'),
+            'download_url': data.get('download_url'),
+            'approved': True,
+            'status': data.get('status', 'draft'),
+            'price': data.get('price')
+        }
+
+        response = supabase.table('game').insert(game_data).execute()
+        if response.get('status_code', 200) >= 400:
+            return jsonify({'error': 'Failed to create game'}), 500
+            
+        created_game = response.get('data', [{}])[0]
+        return jsonify({
+            'id': created_game.get('id'),
+            'title': created_game.get('title'),
+            'message': 'Game created successfully'
+        }), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 # Admin approves a game
 @app.route('/api/games/<int:game_id>/approve', methods=['POST'])
 @login_required
 @role_required('admin')
 def approve_game(game_id):
-    game = Game.query.get_or_404(game_id)
-    game.approved = True
-    db.session.commit()
-    return jsonify({'id': game.id, 'approved': game.approved})
+    try:
+        response = supabase.table('games').update({'approved': True}).eq('id', game_id).execute()
+        if response.get('status_code', 200) >= 400:
+            return jsonify({'error': 'Failed to approve game'}), 500
+            
+        updated_game = response.get('data', [{}])[0]
+        return jsonify({'id': updated_game.get('id'), 'approved': updated_game.get('approved')})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Admin deletes a game
 @app.route('/api/games/<int:game_id>', methods=['DELETE'])
@@ -472,44 +614,157 @@ def create_review():
     return jsonify({'id': review.id}), 201
 
 # UserLibrary APIs
+
+
+# --- (Assuming app, supabase, and login_required decorator are defined) ---
+# Your @login_required decorator must be working and setting request.user_id
+# and request.user correctly.
+# ---
+
 @app.route('/api/userlibrary', methods=['GET'])
 @login_required
 def get_userlibrary():
+    """
+    Fetches the game library for the authenticated user, including game details.
+    Assumes a foreign key relationship exists from 'user_library.game_id' to 'game.id'
+    for the game(*) join to work effectively.
+    """
     try:
-        user_id = getattr(request, 'user_id', None)
-        if not user_id:
-            return jsonify({'error': 'User not authenticated'}), 401
-        entries = UserLibrary.query.filter_by(user_id=user_id).all()
-        # Join with Game to get game details
-        games = []
-        for e in entries:
-            game = Game.query.get(e.game_id)
-            if game:
-                games.append({
-                    'id': game.id,
-                    'title': game.title,
-                    'image_url': game.image_url,
-                    'download_url': game.download_url,  # <-- Add this line
-                    'achievements': 0,  # Placeholder, can be replaced with real count
-                    'addon': None,      # Placeholder, can be replaced with real add-on info
-                })
-        return jsonify(games)
+        user_id = request.user_id
+
+        # Fetch user_library entries and join with the 'game' table.
+        response = supabase.table('user_library').select('*, game(*)').eq('user_id', user_id).execute()
+
+        print(f"--- Supabase Response for /api/userlibrary GET (User ID: {user_id}) ---")
+        print(f"Data: {response.data}")
+        print(f"Error: {getattr(response, 'error', 'N/A')}")
+        print("-----------------------------------------------------------------")
+
+        if getattr(response, 'error', None):
+            print(f"Supabase Error: {response.error.message}")
+            return jsonify({'error': 'Database operation failed', 'details': response.error.message}), 500
+
+        library_items = []
+        if response.data:
+            for entry in response.data:
+                game_details = entry.get('game') 
+                if game_details:
+                    library_items.append({
+                        'id': game_details.get('id'), 
+                        'title': game_details.get('title'),
+                        'image_url': game_details.get('image_url'),
+                        'download_url': game_details.get('download_url'),
+                        'playtime': entry.get('playtime'), 
+                        'acquisition_date': entry.get('acquisition_date'),
+                        'achievements': 0, 
+                        'addon': None,
+                    })
+        
+        return jsonify(library_items), 200
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Flask/Python Error in /api/userlibrary GET for user {request.user_id if hasattr(request, 'user_id') else 'Unknown'}:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
 
 @app.route('/api/userlibrary', methods=['POST'])
 @login_required
 def create_userlibrary():
-    data = request.json
-    # Prevent duplicate: check if already in library
-    exists = UserLibrary.query.filter_by(user_id=data['user_id'], game_id=data['game_id']).first()
-    if exists:
-        return jsonify({'error': 'You already own this game in your library.'}), 409
-    entry = UserLibrary(user_id=data['user_id'], game_id=data['game_id'], playtime=data.get('playtime'))
-    db.session.add(entry)
-    db.session.commit()
-    return jsonify({'id': entry.id}), 201
+    """
+    Adds a game to the authenticated user's library.
+    Assumes 'id' in 'user_library' is an auto-generated IDENTITY column in Supabase.
+    """
+    try:
+        data = request.json
+        user_id = request.user_id 
+        game_id = data.get('game_id')
+        playtime = data.get('playtime', 0) 
 
+        if not game_id:
+            return jsonify({'error': 'game_id is required.'}), 400
+
+        # Prevent duplicate
+        check_response = supabase.table('user_library').select('id', count='exact').eq('user_id', user_id).eq('game_id', game_id).execute()
+
+        if getattr(check_response, 'error', None):
+            print(f"Supabase Error checking library: {check_response.error.message}")
+            return jsonify({'error': 'Database error checking library', 'details': check_response.error.message}), 500
+        
+        if check_response.count > 0:
+            return jsonify({'error': 'You already own this game in your library.'}), 409
+
+        entry_data = {
+            'user_id': user_id,
+            'game_id': game_id,
+            'playtime': playtime,
+            'acquisition_date': datetime.now(timezone.utc).isoformat()
+        }
+
+        insert_response = supabase.table('user_library').insert(entry_data).execute()
+
+        if getattr(insert_response, 'error', None):
+            # This is where you'd see the error if 'id' wasn't identity or other constraint violation
+            print(f"Supabase Error adding to library: {insert_response.error.message}")
+            return jsonify({'error': 'Failed to add game to library', 'details': insert_response.error.message}), 500
+
+        if not insert_response.data:
+             return jsonify({'error': 'Failed to add game to library, no data returned.'}), 500
+        
+        return jsonify(insert_response.data[0]), 201
+
+    except Exception as e:
+        print(f"Flask/Python Error in /api/userlibrary POST for user {request.user_id if hasattr(request, 'user_id') else 'Unknown'}:")
+        traceback.print_exc()
+  
+    """
+    Adds a game to the authenticated user's library.
+    Assumes 'id' in 'user_library' is auto-generated by Supabase.
+    """
+    try:
+        data = request.json
+        user_id = request.user_id # Set by @login_required
+        game_id = data.get('game_id')
+        playtime = data.get('playtime', 0) # Default playtime to 0 if not provided
+
+        if not game_id:
+            return jsonify({'error': 'game_id is required.'}), 400
+
+        # --- Prevent duplicate: check if already in library ---
+        check_response = supabase.table('user_library').select('id').eq('user_id', user_id).eq('game_id', game_id).execute()
+
+        if getattr(check_response, 'error', None):
+            print(f"Supabase Error checking library: {check_response.error.message}")
+            return jsonify({'error': 'Database error checking library', 'details': check_response.error.message}), 500
+        
+        if check_response.data:
+            return jsonify({'error': 'You already own this game in your library.'}), 409 # 409 Conflict
+
+        # --- Prepare data for insertion ---
+        # 'id' should be auto-generated by Supabase if "Is Identity" is enabled.
+        # 'acquisition_date' can be set by the database default (e.g., now()) or here.
+        entry_data = {
+            'user_id': user_id,
+            'game_id': game_id,
+            'playtime': playtime,
+            'acquisition_date': datetime.now(timezone.utc).isoformat() # Set current time
+        }
+
+        insert_response = supabase.table('user_library').insert(entry_data).execute()
+
+        if getattr(insert_response, 'error', None):
+            print(f"Supabase Error adding to library: {insert_response.error.message}")
+            return jsonify({'error': 'Failed to add game to library', 'details': insert_response.error.message}), 500
+
+        if not insert_response.data:
+             return jsonify({'error': 'Failed to add game to library, no data returned.'}), 500
+
+        # Return the newly created library entry (or just its ID)
+        return jsonify(insert_response.data[0]), 201
+
+    except Exception as e:
+        print(f"Flask/Python Error in /api/userlibrary POST for user {request.user_id if hasattr(request, 'user_id') else 'Unknown'}:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
 # Friend APIs
 @app.route('/api/friends', methods=['GET'])
 @login_required
@@ -672,79 +927,161 @@ def create_supportticket():
     db.session.commit()
     return jsonify({'id': ticket.id}), 201
 
-# --- CART APIs ---
+
+from flask import Flask, request, jsonify
+from supabase import create_client, Client
+import traceback
+from datetime import datetime, timezone # Make sure this is imported
+from functools import wraps # For the @login_required decorator
+
+# --- ASSUMPTIONS ---
+# You have 'app' and 'supabase' client defined correctly.
+# You have a working @login_required decorator that sets request.user_id.
+# Example:
+# app = Flask(__name__)
+# SUPABASE_URL = "YOUR_SUPABASE_URL"
+# SUPABASE_KEY = "YOUR_SUPABASE_SERVICE_KEY"
+# supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+#
+# def login_required(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         # ... your working @login_required logic using Supabase ...
+#         # It must set request.user_id
+#         # For example:
+#         # token = get_token_from_header()
+#         # if not token: return jsonify({'error': 'Auth header missing'}), 401
+#         # user_id = decode_jwt_token(token) # Your function to decode
+#         # if not user_id: return jsonify({'error': 'Invalid token'}), 401
+#         # request.user_id = user_id 
+#         return f(*args, **kwargs)
+#     return decorated_function
+# --- END ASSUMPTIONS ---
+
 @app.route('/api/cart', methods=['GET'])
 @login_required
 def get_cart():
-    cart_items = CartItem.query.filter_by(user_id=request.user_id).all()
-    result = []
-    for item in cart_items:
-        game = Game.query.get(item.game_id)
-        if game:
-            result.append({
-                'cart_item_id': item.id,
-                'game_id': game.id,
-                'title': game.title,
-                'image': game.image_url,
-                'price': game.price
-            })
-    return jsonify({'items': result})
+    """
+    Fetches the cart items for the authenticated user, including game details.
+    Assumes a foreign key relationship from 'cart_item.game_id' to 'game.id'.
+    """
+    try:
+        user_id = request.user_id
 
-@app.route('/api/cart', methods=['POST'])
+        response = supabase.table('cart_item').select('id, game_id, added_at, game(*)').eq('user_id', user_id).execute()
+
+        print(f"--- Supabase Response for GET /api/cart (User ID: {user_id}) ---")
+        print(f"Data: {response.data}")
+        print(f"Error: {getattr(response, 'error', 'N/A')}")
+        print("-------------------------------------------------------------")
+
+        if getattr(response, 'error', None):
+            return jsonify({'error': 'Database operation failed', 'details': response.error.message}), 500
+
+        result = []
+        if response.data:
+            for item in response.data:
+                game_details = item.get('game')
+                if game_details:
+                    result.append({
+                        'cart_item_id': item.get('id'),
+                        'game_id': game_details.get('id'),
+                        'title': game_details.get('title'),
+                        'image': game_details.get('image_url'),
+                        'price': game_details.get('price')
+                    })
+        
+        return jsonify({'items': result}), 200
+
+    except Exception as e:
+        print(f"Flask/Python Error in GET /api/cart for user {request.user_id if hasattr(request, 'user_id') else 'Unknown'}:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
+
+@app.route('/api/cart', methods=['POST']) # <-- Ensure 'POST' is here
 @login_required
 def add_to_cart():
+    """
+    Adds a game to the authenticated user's cart.
+    Assumes 'id' in 'cart_item' is auto-generated by Supabase ("Is Identity").
+    """
     try:
         data = request.json
+        user_id = request.user_id
         game_id = data.get('game_id')
+
         if not game_id:
             return jsonify({'error': 'game_id is required'}), 400
-        # Check if already in library
-        if UserLibrary.query.filter_by(user_id=request.user_id, game_id=game_id).first():
+
+        # Check if already in user's library
+        library_check_response = supabase.table('user_library').select('id', count='exact').eq('user_id', user_id).eq('game_id', game_id).execute()
+        
+        if getattr(library_check_response, 'error', None):
+            return jsonify({'error': 'Database error checking library', 'details': library_check_response.error.message}), 500
+        
+        if library_check_response.count > 0:
             return jsonify({'error': 'You already own this game in your library.'}), 409
+
         # Check if already in cart
-        cart_item = CartItem.query.filter_by(user_id=request.user_id, game_id=game_id).first()
-        if cart_item:
+        cart_check_response = supabase.table('cart_item').select('id', count='exact').eq('user_id', user_id).eq('game_id', game_id).execute()
+
+        if getattr(cart_check_response, 'error', None):
+            return jsonify({'error': 'Database error checking cart', 'details': cart_check_response.error.message}), 500
+
+        if cart_check_response.count > 0:
             return jsonify({'error': 'Game already in cart.'}), 400
-        cart_item = CartItem(user_id=request.user_id, game_id=game_id)
-        db.session.add(cart_item)
-        db.session.commit()
-        return jsonify({'message': 'Game added to cart.'}), 201
+
+        cart_item_data = {
+            'user_id': user_id,
+            'game_id': game_id,
+            'added_at': datetime.now(timezone.utc).isoformat()
+        }
+
+        insert_response = supabase.table('cart_item').insert(cart_item_data).execute()
+
+        if getattr(insert_response, 'error', None):
+            print(f"Supabase Error adding to cart: {insert_response.error.message}")
+            return jsonify({'error': 'Failed to add game to cart', 'details': insert_response.error.message}), 500
+        
+        if not insert_response.data:
+             return jsonify({'error': 'Failed to add game to cart, no data returned (check if ID is auto-generated in Supabase for cart_item table).'}), 500
+
+        return jsonify({'message': 'Game added to cart.', 'cart_item': insert_response.data[0]}), 201
+
     except Exception as e:
-        import traceback
+        print(f"Flask/Python Error in POST /api/cart for user {request.user_id if hasattr(request, 'user_id') else 'Unknown'}:")
         traceback.print_exc()
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 @app.route('/api/cart/<int:game_id>', methods=['DELETE'])
 @login_required
 def remove_from_cart(game_id):
-    cart_item = CartItem.query.filter_by(user_id=request.user_id, game_id=game_id).first()
-    if not cart_item:
-        return jsonify({'error': 'Game not in cart.'}), 404
-    db.session.delete(cart_item)
-    db.session.commit()
-    return jsonify({'message': 'Game removed from cart.'})
+    """
+    Removes a game from the authenticated user's cart.
+    Uses 'returning=representation' to confirm deletion.
+    """
+    try:
+        user_id = request.user_id
 
-# --- AUTHENTICATION (STUBS) ---
-def send_verification_email(user):
-    otp = str(random.randint(100000, 999999))
-    expiry = datetime.utcnow() + timedelta(minutes=10)
-    user.otp_code = otp
-    user.otp_expiry = expiry
-    db.session.commit()
-    msg = Message('Your Email Verification OTP', recipients=[user.email])
-    msg.html = f'''
-    <div style="background:#181a20;padding:32px 0;text-align:center;font-family:'Segoe UI',Arial,sans-serif;">
-        <div style="background:#23262e;margin:0 auto;padding:32px 40px;border-radius:16px;max-width:480px;box-shadow:0 2px 16px #0005;">
-            <h2 style="color:#1ba9ff;margin-bottom:18px;">Email Verification</h2>
-            <div style="color:#fff;font-size:1.2rem;font-weight:600;margin-bottom:8px;">Hello {user.username},</div>
-            <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">Your OTP code is:</div>
-            <div style="color:#fff;font-size:2rem;font-weight:700;margin-bottom:18px;letter-spacing:2px;">{otp}</div>
-            <div style="color:#aaa;font-size:1.05rem;margin-bottom:18px;">It expires in 10 minutes.</div>
-        </div>
-    </div>
-    '''
-    mail.send(msg)
+        delete_response = supabase.table('cart_item').delete(returning='representation').match({'user_id': user_id, 'game_id': game_id}).execute()
 
+        print(f"--- Supabase Response for DELETE /api/cart/{game_id} (User ID: {user_id}) ---")
+        print(f"Data: {delete_response.data}")
+        print(f"Error: {getattr(delete_response, 'error', 'N/A')}")
+        print("-----------------------------------------------------------------------")
+
+        if getattr(delete_response, 'error', None):
+            return jsonify({'error': 'Failed to remove game from cart', 'details': delete_response.error.message}), 500
+
+        if not delete_response.data:
+             return jsonify({'error': 'Game not in cart or already removed.'}), 404
+        
+        return jsonify({'message': 'Game removed from cart.'}), 200
+
+    except Exception as e:
+        print(f"Flask/Python Error in DELETE /api/cart/{game_id} for user {request.user_id if hasattr(request, 'user_id') else 'Unknown'}:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
@@ -793,16 +1130,62 @@ def verify_email_otp():
     mail.send(msg)
     return jsonify({'message': 'Email verified successfully.'})
 
+
 @app.route('/api/login', methods=['POST'])
 def login():
+    """
+    Handles user login using the 'user' table.
+    """
     data = request.json
-    user = User.query.filter_by(username=data['username']).first()
-    if user and check_password_hash(user.password_hash, data['password']):
-        if not user.is_verified:
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'error': 'Username and password are required.'}), 400
+
+    try:
+        # Use the 'user' table (singular)
+        response = supabase.table('user').select('*').eq('username', username).maybe_single().execute()
+
+        print(f"--- Supabase Login Response for {username} ---")
+        print(f"Data: {response.data}")
+        print(f"Error: {getattr(response, 'error', 'N/A')}")
+        print("-----------------------------------------")
+
+        # Check if a user was found
+        if not response.data:
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        user = response.data
+
+        # Check the password_hash (ensure this column exists and is populated)
+        if not user.get('password_hash') or not check_password_hash(user['password_hash'], password):
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        # Check if verified (ensure this column exists)
+        if not user.get('is_verified', False):
             return jsonify({'error': 'Email not verified.'}), 403
-        token = create_jwt_token(user.id)
-        return jsonify({'token': token, 'id': user.id, 'username': user.username, 'role': user.role})
-    return jsonify({'error': 'Invalid credentials'}), 401
+            
+        # Check if active (ensure this column exists)
+        if not user.get('is_active', True): # Default to True if column doesn't exist
+            return jsonify({'error': 'Account is deactivated.'}), 403
+
+        # Create JWT token
+        token = create_jwt_token(user['id'])
+        
+        # Return token and user info
+        return jsonify({
+            'token': token, 
+            'id': user['id'], 
+            'username': user['username'], 
+            'role': user.get('role', 'user'), 
+            'avatar_url': user.get('avatar_url')
+        })
+
+    except Exception as e:
+        print("Flask/Python Error during login:")
+        traceback.print_exc() # Print the full error!
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
 
 # --- LOGOUT ENDPOINT ---
 @app.route('/api/logout', methods=['POST'])
@@ -814,10 +1197,26 @@ def logout():
 
 # Example protected route
 @app.route('/api/me', methods=['GET'])
-@login_required
+@login_required # This decorator handles auth and fetching the user
 def get_me():
-    user = User.query.get_or_404(request.user_id)
-    return jsonify({'id': user.id, 'username': user.username, 'email': user.email})
+    """
+    Returns the id, username, and email for the currently authenticated user.
+    """
+    try:
+        # The user dictionary is available on request.user
+        user = request.user 
+
+        # Return just the id, username, and email using .get()
+        return jsonify({
+            'id': user.get('id'),
+            'username': user.get('username'),
+            'email': user.get('email')
+        }), 200
+
+    except Exception as e:
+        print("Flask/Python Error in /api/me:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
 
 # --- GAME SEARCH & FILTER ---
 @app.route('/api/games/search', methods=['GET'])
@@ -1379,25 +1778,8 @@ def change_game_status(game_id):
     db.session.commit()
     return jsonify({'id': game.id, 'status': game.status})
 
-@app.route('/api/games/<int:game_id>', methods=['GET'])
-def get_game_details(game_id):
-    try:
-        game = Game.query.get_or_404(game_id)
-        return jsonify({
-            'id': game.id,
-            'title': getattr(game, 'title', None),
-            'description': game.description,
-            'developer': game.developer,
-            'publisher': game.publisher,
-            'release_date': str(game.release_date),
-            'image_url': game.image_url,
-            'download_url': game.download_url,
-            'approved': game.approved,
-            'status': game.status,
-            'price': game.price
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
+
 
 @app.route('/api/games/transfer', methods=['POST'])
 @login_required
@@ -1432,11 +1814,17 @@ def send_message():
         content = data.get('content')
         if not to_user_id or not content:
             return jsonify({'error': 'to_user_id and content are required.'}), 400
-        from models import UserHistory
         # Save message as a UserHistory action (for demo; ideally use a Message model)
-        msg = UserHistory(user_id=request.user_id, action='send_message', details=f'To {to_user_id}: {content}')
-        db.session.add(msg)
-        db.session.commit()
+        details = f'To {to_user_id}: {content}'
+        insert_data = {
+            'user_id': request.user_id,
+            'action': 'send_message',
+            'details': details,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        response = supabase.table('userhistory').insert(insert_data).execute()
+        if response.get('status_code', 200) >= 400:
+            return jsonify({'error': 'Failed to send message.'}), 500
         return jsonify({'message': 'Message sent.'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -1445,15 +1833,21 @@ def send_message():
 @login_required
 def get_messages(user_id):
     try:
-        from models import UserHistory
-        # Demo: fetch messages sent to or from user
-        logs = UserHistory.query.filter(
-            ((UserHistory.user_id == request.user_id) & (UserHistory.action == 'send_message') & (UserHistory.details.like(f'To {user_id}:%')))
-            | ((UserHistory.user_id == user_id) & (UserHistory.action == 'send_message') & (UserHistory.details.like(f'To {request.user_id}:%')))
-        ).order_by(UserHistory.timestamp.desc()).all()
-        return jsonify([
-            {'from': log.user_id, 'details': log.details, 'timestamp': log.timestamp.isoformat()} for log in logs
-        ])
+        # Fetch messages sent to or from user
+        from_id = request.user_id
+        to_id = user_id
+        # Messages sent from current user to user_id
+        sent = supabase.table('userhistory').select('*').eq('user_id', from_id).eq('action', 'send_message').like('details', f'To {to_id}:%').execute()
+        # Messages sent from user_id to current user
+        received = supabase.table('userhistory').select('*').eq('user_id', to_id).eq('action', 'send_message').like('details', f'To {from_id}:%').execute()
+        logs = []
+        for row in sent.get('data', []):
+            logs.append({'from': from_id, 'details': row['details'], 'timestamp': row.get('timestamp')})
+        for row in received.get('data', []):
+            logs.append({'from': to_id, 'details': row['details'], 'timestamp': row.get('timestamp')})
+        # Sort by timestamp descending if available
+        logs.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        return jsonify(logs)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -1465,10 +1859,16 @@ def report_review(review_id):
         reason = data.get('reason')
         if not reason:
             return jsonify({'error': 'Reason is required.'}), 400
-        from models import UserHistory
-        history = UserHistory(user_id=request.user_id, action='report_review', details=f'Reported review {review_id}: {reason}')
-        db.session.add(history)
-        db.session.commit()
+        details = f'Reported review {review_id}: {reason}'
+        insert_data = {
+            'user_id': request.user_id,
+            'action': 'report_review',
+            'details': details,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        response = supabase.table('userhistory').insert(insert_data).execute()
+        if response.get('status_code', 200) >= 400:
+            return jsonify({'error': 'Failed to submit review report.'}), 500
         return jsonify({'message': 'Review report submitted.'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -1478,23 +1878,10 @@ def report_review(review_id):
 @role_required('admin')
 def get_review_reports():
     try:
-        from models import UserHistory
-        reports = UserHistory.query.filter_by(action='report_review').order_by(UserHistory.timestamp.desc()).all()
+        response = supabase.table('userhistory').select('*').eq('action', 'report_review').order('timestamp', desc=True).execute()
+        reports = response.get('data', [])
         return jsonify([
-            {'user_id': r.user_id, 'details': r.details, 'timestamp': r.timestamp.isoformat()} for r in reports
-        ])
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/game_reports', methods=['GET'])
-@login_required
-@role_required('admin')
-def get_game_reports():
-    try:
-        from models import UserHistory
-        reports = UserHistory.query.filter_by(action='report_game').order_by(UserHistory.timestamp.desc()).all()
-        return jsonify([
-            {'user_id': r.user_id, 'details': r.details, 'timestamp': r.timestamp.isoformat()} for r in reports
+            {'user_id': r['user_id'], 'details': r['details'], 'timestamp': r.get('timestamp')} for r in reports
         ])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -1542,14 +1929,52 @@ def resend_otp():
     mail.send(msg)
     return jsonify({'message': 'OTP resent.'})
 
+from flask import Flask, jsonify, request
+from supabase import create_client, Client
+import traceback
+
+# --- (Assuming app and supabase client are defined) ---
+
 @app.route('/api/genres', methods=['GET'])
 def get_genres():
-    genres = db.session.query(Game.genre).filter(Game.genre != None).distinct().all()
-    genre_list = [g[0] for g in genres if g[0]]
-    return jsonify(genre_list)
+    """
+    Fetches a list of unique game genres from the 'game' table.
+    """
+    try:
+        # Corrected Supabase query using not_.is_("column", None)
+        # This should translate to "WHERE column IS NOT NULL"
+        response = supabase.table('game').select('genre').not_.is_('genre', None).execute()
 
+        # --- Debugging: Print what Supabase returns ---
+        print(f"--- Supabase Response for /api/genres ---")
+        print(f"Response Object Type: {type(response)}")
+        if hasattr(response, 'data'):
+            print(f"Data: {response.data}")
+        else:
+            print("Data attribute missing from response.")
+        print(f"Error: {getattr(response, 'error', 'N/A')}")
+        print("-----------------------------------------")
+        # --- End Debugging ---
 
+        if getattr(response, 'error', None):
+            print(f"Supabase Error fetching genres: {response.error.message}")
+            # The error you got was from PostgREST, so it would appear here
+            return jsonify({'error': 'Database operation failed', 'details': response.error.message}), 500
+
+        genres = set()
+
+        if response.data:
+            for game_entry in response.data:
+                genre = game_entry.get('genre')
+                if genre: # This also helps filter out empty strings if any slip through
+                    genres.add(genre)
+
+        return jsonify(list(genres)), 200
+
+    except Exception as e:
+        print(f"Flask/Python Error in /api/genres:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+        app.run(debug=True)

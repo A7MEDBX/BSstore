@@ -7,7 +7,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(10000), nullable=False)
     is_verified = db.Column(db.Boolean, default=False)
     verification_token = db.Column(db.String(128), nullable=True)
     role = db.Column(db.String(20), default='user')  # 'admin', 'company', 'user'
@@ -23,8 +23,8 @@ class Game(db.Model):
     developer = db.Column(db.String(120))
     publisher = db.Column(db.String(120))  # New: publisher name
     release_date = db.Column(db.Date)
-    image_url = db.Column(db.String(255))
-    download_url = db.Column(db.String(255))
+    image_url = db.Column(db.String(10000))
+    download_url = db.Column(db.String(10000))
     approved = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(32), default='draft')  # New: draft, under_review, published, suspended
     price = db.Column(db.Float, nullable=True)  # New: price of the game
