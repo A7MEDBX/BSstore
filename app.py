@@ -182,9 +182,25 @@ def role_required(*roles):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            user = User.query.get(request.user_id)
-            if not user or user.role not in roles:
-                return jsonify({'error': 'Forbidden'}), 403
+            # Get the user dictionary that @login_required should have already fetched
+            # and attached to the request object.
+            user = getattr(request, 'user', None) 
+
+            if not user:
+                # This should ideally not happen if @login_required ran successfully
+                print("Error in role_required: request.user not set by @login_required.")
+                return jsonify({'error': 'Authentication error, user not found on request.'}), 500 # Or 401
+
+            user_role = user.get('role')
+            print(f"--- Role Check ---")
+            print(f"User role: {user_role}")
+            print(f"Required roles: {roles}")
+
+            if not user_role or user_role not in roles:
+                print(f"FAIL: Role '{user_role}' not in required roles {roles}.")
+                return jsonify({'error': 'Forbidden: Insufficient role privileges.'}), 403
+            
+            print(f"SUCCESS: Role '{user_role}' is sufficient.")
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -431,10 +447,47 @@ def approve_game(game_id):
         return jsonify({'error': str(e)}), 500
 
 # Admin deletes a game
+from flask import Flask, request, jsonify # Ensure jsonify and request are imported
+import traceback # For error logging
+# ... (your other imports and Supabase client setup)
+
 @app.route('/api/games/<int:game_id>', methods=['DELETE'])
 @login_required
-@role_required('admin')
+@role_required('admin') # Make sure your role_required is the Supabase version
 def delete_game(game_id):
+    """
+    Deletes a game by its ID from the 'game' table in Supabase.
+    """
+    try:
+        print(f"--- Attempting to delete game with ID: {game_id} by User ID: {request.user_id if hasattr(request, 'user_id') else 'Unknown'} ---")
+
+        # Perform the delete operation on the 'game' table
+        # Use returning='representation' to see what was deleted (optional but good for confirmation)
+        # You could also use .match({'id': game_id})
+        delete_response = supabase.table('game').delete(returning='representation').eq('id', game_id).execute()
+
+        print(f"--- Supabase DELETE Response for game {game_id} ---")
+        print(f"Data: {delete_response.data}")
+        print(f"Error: {getattr(delete_response, 'error', 'N/A')}")
+        print("---------------------------------------------")
+
+        # Check for Supabase errors
+        if getattr(delete_response, 'error', None):
+            print(f"Supabase Error deleting game {game_id}: {delete_response.error.message}")
+            return jsonify({'error': 'Database operation failed', 'details': delete_response.error.message}), 500
+
+        # Check if any data was returned (meaning a row was actually deleted)
+        if not delete_response.data:
+            return jsonify({'error': 'Game not found or already deleted.'}), 404
+        
+        # Optionally: Delete associated images from Cloudinary or other related data here if needed
+
+        return jsonify({'result': 'Game deleted successfully.'}), 200
+
+    except Exception as e:
+        print(f"Flask/Python Error in delete_game for game_id {game_id}:")
+        traceback.print_exc()
+        return jsonify({'error': f'An internal server error occurred: {str(e)}'}), 500
     game = Game.query.get_or_404(game_id)
     db.session.delete(game)
     db.session.commit()
