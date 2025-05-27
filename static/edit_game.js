@@ -1,4 +1,15 @@
 /**
+ * Utility to get JWT token from localStorage or cookie
+ */
+function getJwtToken() {
+    let token = localStorage.getItem('jwt_token');
+    if (token) return token;
+    let match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+    if (match) return decodeURIComponent(match[1]);
+    return null;
+}
+
+/**
  * Fetch game details from the backend and populate the edit form.
  * @param {number} gameId - The ID of the game to fetch.
  */
@@ -53,16 +64,18 @@ document.getElementById("editGameForm").addEventListener("submit", async functio
     };
 
     try {
+        const token = getJwtToken();
         const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
             },
             body: JSON.stringify(formData),
         });
 
         if (response.ok) {
-            alert("Game updated successfully!");
+            this.showPopover("Game updated successfully!");
             closeEditModal();
             fetchGames(); // Refresh the games list
         } else {

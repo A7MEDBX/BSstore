@@ -1,3 +1,17 @@
+# --- IMPORTANT: JWT AUTH ---
+# All protected endpoints require the frontend to send:
+#   Authorization: Bearer <JWT_TOKEN>
+# in the request headers. Cookies are NOT used for JWT auth.
+#
+# Example (JS fetch):
+# fetch('/api/some-protected-endpoint', {
+#   headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+# })
+#
+# If you get 401 errors, check that the header is present and the token is valid.
+#
+# --- END IMPORTANT ---
+
 from flask import Flask, request, jsonify
 import secrets
 from flask_mail import Mail, Message
@@ -167,6 +181,29 @@ def create_user():
         return jsonify({'id': user.id, 'username': user.username, 'email': user.email}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+        
+@app.route('/api/allgames', methods=['GET'])
+def allgames():
+    try:
+        games = Game.query.all()
+        return jsonify([
+            {
+                'id': g.id,
+                'title': g.title,
+                'description': g.description,
+                'developer': g.developer,
+                'publisher': g.publisher,
+                'release_date': str(g.release_date) if g.release_date else None,
+                'image_url': g.image_url,
+                'download_url': g.download_url,
+                'approved': g.approved,
+                'status': g.status,
+                'price': g.price,
+                'genre': g.genre  # <-- Add genre to API response
+            } for g in games
+        ])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Game APIs
 @app.route('/api/games', methods=['GET'])
@@ -194,6 +231,8 @@ def get_games():
 
 # Company uploads a game (pending approval)
 @app.route('/api/games', methods=['POST'])
+@login_required
+@role_required('admin')
 def create_game():
     data = request.json
     # Parse release_date as a Python date object if provided
@@ -251,7 +290,8 @@ def approve_game(game_id):
 
 # Admin deletes a game
 @app.route('/api/games/<int:game_id>', methods=['DELETE'])
-
+@login_required
+@role_required('admin')
 def delete_game(game_id):
     game = Game.query.get_or_404(game_id)
     db.session.delete(game)
@@ -761,7 +801,7 @@ def login():
         if not user.is_verified:
             return jsonify({'error': 'Email not verified.'}), 403
         token = create_jwt_token(user.id)
-        return jsonify({'token': token, 'id': user.id, 'username': user.username})
+        return jsonify({'token': token, 'id': user.id, 'username': user.username, 'role': user.role})
     return jsonify({'error': 'Invalid credentials'}), 401
 
 # --- LOGOUT ENDPOINT ---
@@ -1328,8 +1368,7 @@ def update_game(game_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/games/<int:game_id>/status', methods=['POST'])
-@login_required
-@role_required('admin')
+
 def change_game_status(game_id):
     data = request.json
     status = data.get('status')

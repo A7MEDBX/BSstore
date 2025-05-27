@@ -1,3 +1,12 @@
+// Utility to get JWT token from localStorage or cookie
+function getJwtToken() {
+    let token = localStorage.getItem('jwt_token');
+    if (token) return token;
+    let match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+    if (match) return decodeURIComponent(match[1]);
+    return null;
+}
+
 /**
  * Fetch all games from the backend API and display them in the grid.
  */
@@ -66,7 +75,10 @@ function renderGamesGrid(games) {
             e.stopPropagation();
             showDeleteConfirmationPopup(async () => {
                 try {
-                    const res = await fetch(`http://127.0.0.1:5000/api/games/${game.id}`, { method: 'DELETE' });
+                    const res = await fetch(`http://127.0.0.1:5000/api/games/${game.id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + getJwtToken() }
+                    });
                     const data = await res.json();
                     showPopupMessage('Game deleted successfully!', 'success');
                     fetchGames();
@@ -168,7 +180,24 @@ if (editGameForm) {
             image_url: document.getElementById("image_url").value,
             download_url: document.getElementById("download_url").value
         };
-     
+        const token = getJwtToken();
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/api/allgames/${gameId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(data)
+            });
+            if (response.ok) {
+                showPopupMessage('Game updated successfully!', 'success');
+                closeEditModal();
+                fetchGames();
+            } else {
+                const error = await response.json();
+                showPopupMessage(`Error: ${error.message}`, 'error');
+            }
+        } catch (error) {
+            showPopupMessage('Failed to update game. Please try again.', 'error');
+        }
     };
     // Make sure Cancel/Back button closes the modal
     const backBtn = document.querySelector('.back-btn, .cancel-btn');
@@ -201,6 +230,41 @@ function fetchGameDetails(gameId) {
 }
 
 window.addEventListener('DOMContentLoaded', function () {
+    // --- ADMIN PAGE ACCESS CONTROL ---
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    let user = null;
+    try {
+        const userCookie = getCookie('user');
+        user = userCookie ? JSON.parse(decodeURIComponent(userCookie)) : null;
+    } catch {}
+    if (!user || user.role !== 'admin') {
+        // Block page, show popup, redirect after 3s
+        document.body.innerHTML = '';
+        const popup = document.createElement('div');
+        popup.textContent = 'You do not have access to this page.';
+        popup.style.position = 'fixed';
+        popup.style.top = '50%';
+        popup.style.left = '50%';
+        popup.style.transform = 'translate(-50%, -50%)';
+        popup.style.background = '#23262e';
+        popup.style.color = '#fff';
+        popup.style.fontWeight = 'bold';
+        popup.style.fontSize = '1.2rem';
+        popup.style.padding = '32px 48px';
+        popup.style.borderRadius = '12px';
+        popup.style.boxShadow = '0 4px 24px #0005';
+        popup.style.zIndex = '99999';
+        document.body.appendChild(popup);
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 3000);
+        return;
+    }
+
     const form = document.getElementById('editGameForm');
     if (form) {
         // إعداد التصميم الرئيسي للـ form
@@ -486,10 +550,11 @@ addGameForm.addEventListener('submit', async function(event) {
         image_url: document.getElementById('add_image_url').value,
         download_url: document.getElementById('add_download_url').value
     };
+    const token = getJwtToken();
     try {
         const response = await fetch('http://127.0.0.1:5000/api/games', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(formData)
         });
         if (response.ok) {

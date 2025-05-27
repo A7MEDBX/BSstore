@@ -47,17 +47,13 @@ if (loginForm) {
             document.cookie = `jwt=${data.token}; path=/; SameSite=Strict;`;
             localStorage.setItem('jwt_token', data.token);
             // Save user info from login response in cookie
-            document.cookie = `user=${encodeURIComponent(JSON.stringify({id: data.id, username: data.username}))}; path=/; SameSite=Strict;`;
-            // Optionally fetch user profile (if you want more info)
-            // const profileRes = await fetch('/api/me', {
-            //     headers: { 'Authorization': `Bearer ${data.token}` },
-            //     credentials: 'include'
-            // });
-            // if (profileRes.ok) {
-            //     const user = await profileRes.json();
-            //     document.cookie = `user=${encodeURIComponent(JSON.stringify(user))}; path=/; SameSite=Strict;`;
-            // }
-            window.location.href = 'index.html';
+            document.cookie = `user=${encodeURIComponent(JSON.stringify({id: data.id, username: data.username, role: data.role}))}; path=/; SameSite=Strict;`;
+            // Redirect admin to game_management.html, others to index.html
+            if (data.role === 'admin') {
+                window.location.href = 'game_management.html';
+            } else {
+                window.location.href = 'index.html';
+            }
         } catch (err) {
             alert('Login error: ' + err);
         }
@@ -160,21 +156,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (signOutBtn) {
         signOutBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            // Remove all cookies
             document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00; path=/;";
             document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            logoutAndClearCookies();
-            window.location.reload();
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
         });
-    }
-  function logoutAndClearCookies() {
-        // Remove all cookies
-        document.cookie.split(';').forEach(function(c) {
-            document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');
-        });
-        // Optionally clear localStorage/sessionStorage
-        localStorage.removeItem('user');
-        // Redirect to login or home
-        window.location.href = 'login.html';
     }
     const registerBtn = document.getElementById('registerBtn');
     if (registerBtn) {
@@ -185,8 +173,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Fetch and display games in the main menu
+    const userCookie = getCookie('user');
+    let user = null;
+    try { user = userCookie ? JSON.parse(decodeURIComponent(userCookie)) : null; } catch {}
+
     fetch(`${BASE_URL}/api/games`)
-        .then(res => res.json())
+        .then(res => {
+            if (!user || !user.role || user.role !== 'admin') {
+                // Hide or disable add/edit/delete UI for non-admins
+                const addBtn = document.getElementById('addGameBtn');
+                if (addBtn) addBtn.style.display = 'none';
+                document.querySelectorAll('.edit-game-btn, .delete-game-btn').forEach(btn => btn.style.display = 'none');
+            }
+            return res.json();
+        })
         .then(games => {
             // --- HERO BANNER FEATURED GAMES ---
             const heroSlider = document.querySelector('.hero-slider');
@@ -303,4 +303,178 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Example: show popup after removing a game from cart
     // showPopupMessage('Game removed from cart', 'success');
+
+    // Display unapproved games in Legendary adventures await section
+    function displayUnapprovedAdventures() {
+        fetch('http://127.0.0.1:5000/api/allgames')
+            .then(res => res.json())
+            .then(games => {
+                const adventuresContainer = document.querySelector('.adventure-cards');
+                if (!adventuresContainer) return;
+                adventuresContainer.innerHTML = '';
+                // Filter unapproved games
+                const unapproved = games.filter(g => {
+                    const approved = g.approved;
+                    const status = (g.status || '').toLowerCase();
+                    return (
+                        approved === false || approved === 0 || approved === '0' || approved === 'false' || approved === null || typeof approved === 'undefined' ||
+                        status === 'pending' || status === 'not approved' || status === 'unapproved' || status === 'waiting' || status === 'awaiting approval'
+                    );
+                });
+                // Sort by newest (assuming higher id = newer)
+                unapproved.sort((a, b) => (b.id || 0) - (a.id || 0));
+                // Show at most 3
+                const toShow = unapproved.slice(0, 3);
+                if (toShow.length === 0) {
+                    adventuresContainer.innerHTML = '<div style="color:#aaa;font-size:1.1em;margin:32px 0;">No adventures pending approval.</div>';
+                } else {
+                    toShow.forEach(game => {
+                        const card = document.createElement('div');
+                        card.className = 'adventure-card modern-adventure-card';
+                        card.style.cursor = 'pointer';
+                        // card.onclick = () => window.location.href = `game.html?id=${game.id}`;
+                        card.innerHTML = `
+                            <div class="adventure-img-wrap">
+                                <img src="${game.image_url || 'images/games/default.jpg'}" alt="${game.title}" class="adventure-img-modern">
+                            </div>
+                            <div class="adventure-info-modern">
+                                <div class="adventure-title-modern">${game.title}</div>
+                                <div class="adventure-desc-modern">${game.description ? game.description.substring(0, 60) + (game.description.length > 60 ? '...' : '') : ''}</div>
+                            </div>
+                        `;
+                        adventuresContainer.appendChild(card);
+                    });
+                }
+            });
+    }
+
+    // Display free games in Play Free section
+    function displayFreeGames() {
+        fetch('http://127.0.0.1:5000/api/allgames')
+            .then(res => res.json())
+            .then(games => {
+                const freeContainer = document.querySelector('.playfree-cards');
+                if (!freeContainer) return;
+                freeContainer.innerHTML = '';
+                // Filter games with price 0 or '0' (string or number)
+                const freeGames = games.filter(g => Number(g.price) === 0);
+                // Sort by newest (assuming higher id = newer)
+                freeGames.sort((a, b) => (b.id || 0) - (a.id || 0));
+                // Show at most 3
+                const toShow = freeGames.slice(0, 3);
+                if (toShow.length === 0) {
+                    freeContainer.innerHTML = '<div style="color:#aaa;font-size:1.1em;margin:32px 0;">No free games available.</div>';
+                } else {
+                    toShow.forEach(game => {
+                        const card = document.createElement('div');
+                        card.className = 'free-card modern-adventure-card';
+                        card.style.cursor = 'pointer';
+                        card.onclick = () => window.location.href = `game.html?id=${game.id}`;
+                        card.innerHTML = `
+                            <div class="adventure-img-wrap">
+                                <img src="${game.image_url || 'images/games/default.jpg'}" alt="${game.title}" class="adventure-img-modern">
+                            </div>
+                            <div class="adventure-info-modern">
+                                <div class="adventure-title-modern">${game.title}</div>
+                                <div class="adventure-desc-modern">${game.description ? game.description.substring(0, 60) + (game.description.length > 60 ? '...' : '') : ''}</div>
+                                <div class="adventure-status-modern" style="color:#1ba9ff;">Free</div>
+                            </div>
+                        `;
+                        freeContainer.appendChild(card);
+                    });
+                }
+            });
+    }
+
+    displayUnapprovedAdventures();
+    displayFreeGames();
+
+    // Add modern styles for adventure cards
+    const style = document.createElement('style');
+    style.textContent = `
+    .modern-adventure-card {
+        background: #23262e;
+        border-radius: 18px;
+        box-shadow: 0 4px 24px #0003;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.18s, box-shadow 0.18s;
+        min-width: 380px;
+        max-width: 550px;
+        min-height: 260px;
+        margin: 15px 18px;
+        padding: 0;
+        border: none;
+    }
+    .modern-adventure-card:hover {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 8px 32px #0006;
+    }
+    .adventure-img-wrap {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        background: #181a20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .adventure-img-modern {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 18px 18px 0 0;
+        transition: filter 0.2s;
+    }
+    .adventure-info-modern {
+        padding: 22px 22px 14px 22px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        justify-content: flex-start;
+    }
+    .adventure-title-modern {
+        font-weight: 700;
+        font-size: 1.22em;
+        color: #fff;
+        margin-bottom: 8px;
+        letter-spacing: 0.01em;
+    }
+    .adventure-desc-modern {
+        color: #b0b0b0;
+        font-size: 1.08em;
+        margin-bottom: 12px;
+        min-height: 32px;
+    }
+    .adventure-status-modern {
+        color: #ff6f61;
+        font-size: 1.08em;
+        font-weight: 600;
+        margin-top: auto;
+    }
+    .playfree-cards, .adventure-cards {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 0;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    @media (max-width: 1800px) {
+        .modern-adventure-card { min-width: 340px; max-width: 420px; }
+    }
+    @media (max-width: 1200px) {
+        .modern-adventure-card { min-width: 280px; max-width: 340px; }
+    }
+    @media (max-width: 900px) {
+        .modern-adventure-card { min-width: 96vw; max-width: 99vw; }
+        .adventure-img-wrap { height: 140px; }
+        .playfree-cards, .adventure-cards { flex-direction: column; align-items: center; }
+    }
+    `;
+    document.head.appendChild(style);
 });
