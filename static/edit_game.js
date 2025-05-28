@@ -9,21 +9,49 @@ async function fetchGameDetails(gameId) {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`);
-        if (!response.ok) throw new Error("Failed to fetch game details.");
+        // Get JWT token for authorization
+        let token = localStorage.getItem('jwt_token');
+        if (!token) {
+            const match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+            if (match) token = decodeURIComponent(match[1]);
+        }
+
+        const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch game details.");
+        }
 
         const game = await response.json();
 
-        document.getElementById("title").value = game.title;
-        document.getElementById("description").value = game.description;
-        document.getElementById("price").value = game.price;
-        document.getElementById("genre").value = game.genre;
-        document.getElementById("status").value = game.status;
-        document.getElementById("approval").value = game.approved ? "Approved" : "Not Approved";
-        document.getElementById("image_url").value = game.image_url;
+        // Make sure we have valid data before setting form values
+        if (!game || typeof game !== 'object') {
+            throw new Error("Invalid game data received");
+        }
 
+        // Set form values with proper type checking
+        const form = document.getElementById("editGameForm");
+        form.dataset.gameId = gameId;
+
+        document.getElementById("title").value = game.title || '';
+        document.getElementById("description").value = game.description || '';
+        document.getElementById("price").value = typeof game.price === 'number' ? game.price : '';
+        document.getElementById("genre").value = game.genre || '';
+        document.getElementById("status").value = game.status || 'draft';
+        document.getElementById("approval").value = game.approved ? "Approved" : "Not Approved";
+        document.getElementById("image_url").value = game.image_url || '';
+
+        // Update image preview with fallback
         const imagePreview = document.getElementById("imagePreview");
-        imagePreview.innerHTML = `<img src="${game.image_url || 'https://via.placeholder.com/150'}" alt="Game Image">`;
+        const imgSrc = game.image_url || 'images/games/default.jpg';
+        imagePreview.innerHTML = `<img src="${imgSrc}" alt="Game Image" onerror="this.src='images/games/default.jpg'">`;
+
     } catch (error) {
         console.error("Error fetching game details:", error);
         alert("Failed to load game details. Please try again.");
@@ -36,42 +64,65 @@ async function fetchGameDetails(gameId) {
 document.getElementById("editGameForm").addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const gameId = document.getElementById("editGameForm").dataset.gameId;
+    const gameId = this.dataset.gameId;
     if (!gameId) {
         alert("Invalid game ID. Please try again.");
         return;
     }
 
+    // Get JWT token
+    let token = localStorage.getItem('jwt_token');
+    if (!token) {
+        const match = document.cookie.match(/(?:^|; )jwt=([^;]*)/);
+        if (match) token = decodeURIComponent(match[1]);
+    }
+
+    if (!token) {
+        alert("You must be logged in to edit games.");
+        return;
+    }
+
+    // Validate and format the data
     const formData = {
-        title: document.getElementById("title").value,
-        description: document.getElementById("description").value,
-        genre: document.getElementById("genre").value,
-        price: document.getElementById("price").value,
+        title: document.getElementById("title").value.trim(),
+        description: document.getElementById("description").value.trim(),
+        genre: document.getElementById("genre").value.trim(),
+        price: parseFloat(document.getElementById("price").value) || 0,
         status: document.getElementById("status").value,
         approved: document.getElementById("approval").value === "Approved",
-        image_url: document.getElementById("image_url").value,
+        image_url: document.getElementById("image_url").value.trim()
     };
+
+    // Basic validation
+    if (!formData.title) {
+        alert("Title is required");
+        return;
+    }
 
     try {
         const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify(formData)
         });
+
+        const data = await response.json();
 
         if (response.ok) {
             alert("Game updated successfully!");
             closeEditModal();
-            fetchGames(); // Refresh the games list
+            if (typeof fetchGames === 'function') {
+                fetchGames(); // Refresh the games list
+            }
         } else {
-            const error = await response.json();
-           // alert(`Error: ${error.message}`);
+            throw new Error(data.error || 'Failed to update game');
         }
     } catch (error) {
         console.error("Error updating game:", error);
-        alert("Failed to update the game. Please try again.");
+        alert(error.message || "Failed to update the game. Please try again.");
     }
 });
 

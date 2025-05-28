@@ -31,15 +31,42 @@ if (loginForm) {
                 credentials: 'include' // Ensure cookies are sent/received for CORS
             });
             if (!res.ok) {
-                let msg = 'Login failed';
+                let msg = 'Invalid username or password';
                 try {
                     const err = await res.json();
-                    msg = err.error || err.message || msg;
+                    // If backend returns 'Invalid credentials', always show the friendly message
+                    if (err && err.error && err.error.toLowerCase().includes('')) {
+                        msg = 'Invalid username or password';
+                    } else if (err && err.error) {
+                        msg =  'Invalid username or password';;
+                    } else if (err && err.message) {
+                        msg =  'Invalid username or password';;
+                    }
                 } catch (e) {
                     // fallback: try to get text
                     try { msg = await res.text(); } catch {}
                 }
-                alert(msg);
+                if (window.showPopupMessage) {
+                   // showPopupMessage(msg, 'error');
+                } else {
+                    // Fallback: create a modern styled popup
+                    const popup = document.createElement('div');
+                    popup.textContent = msg;
+                    popup.style.position = 'fixed';
+                    popup.style.top = '32px';
+                    popup.style.left = '50%';
+                    popup.style.transform = 'translateX(-50%)';
+                    popup.style.background = '#23262e';
+                    popup.style.color = '#ff4e4e';
+                    popup.style.fontWeight = 'bold';
+                    popup.style.fontSize = '1.08rem';
+                    popup.style.padding = '16px 32px';
+                    popup.style.borderRadius = '10px';
+                    popup.style.boxShadow = '0 2px 16px #0005';
+                    popup.style.zIndex = '99999';
+                    document.body.appendChild(popup);
+                    setTimeout(()=>popup.remove(), 2500);
+                }
                 return;
             }
             const data = await res.json();
@@ -55,7 +82,27 @@ if (loginForm) {
                 window.location.href = 'index.html';
             }
         } catch (err) {
-            alert('Login error: ' + err);
+            if (window.showPopupMessage) {
+                showPopupMessage('Network error', 'error');
+            } else {
+                // Fallback: create a modern styled popup
+                const popup = document.createElement('div');
+                popup.textContent = 'Network error';
+                popup.style.position = 'fixed';
+                popup.style.top = '32px';
+                popup.style.left = '50%';
+                popup.style.transform = 'translateX(-50%)';
+                popup.style.background = '#23262e';
+                popup.style.color = '#ff4e4e';
+                popup.style.fontWeight = 'bold';
+                popup.style.fontSize = '1.08rem';
+                popup.style.padding = '16px 32px';
+                popup.style.borderRadius = '10px';
+                popup.style.boxShadow = '0 2px 16px #0005';
+                popup.style.zIndex = '99999';
+                document.body.appendChild(popup);
+                setTimeout(()=>popup.remove(), 2500);
+            }
         }
     });
 }

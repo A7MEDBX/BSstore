@@ -1,3 +1,6 @@
+// Disable all alerts globally
+window.alert = function() {};
+
 // Attach forgot password event after DOM is loaded
 window.addEventListener('DOMContentLoaded', function() {
     const forgotLink = document.getElementById('loginForgotLink');

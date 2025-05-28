@@ -233,31 +233,48 @@
                         }
                     } else {
                         if (window.showPopupMessage) {
+                           // showPopupMessage(data.error || 'Invalid username or password', 'error');
                         } else {
                             // Fallback: create a modern styled popup
-                            const popup = document.createElement('div');
-                            popup.textContent = data.error || 'Invalid username or password';
-                            popup.style.position = 'fixed';
-                            popup.style.top = '32px';
-                            popup.style.left = '50%';
-                            popup.style.transform = 'translateX(-50%)';
-                            popup.style.background = '#23262e';
-                            popup.style.color = '#ff4e4e';
-                            popup.style.fontWeight = 'bold';
-                            popup.style.fontSize = '1.08rem';
-                            popup.style.padding = '16px 32px';
-                            popup.style.borderRadius = '10px';
-                            popup.style.boxShadow = '0 2px 16px #0005';
-                            popup.style.zIndex = '99999';
-                            document.body.appendChild(popup);
-                            setTimeout(()=>popup.remove(), 2500);
+                          // const popup = document.createElement('div');
+                           // popup.textContent = 'Invalid username or password';
+                            // popup.style.position = 'fixed';
+                            // popup.style.top = '32px';
+                            // popup.style.left = '50%';
+                            // popup.style.transform = 'translateX(-50%)';
+                            // popup.style.background = '#23262e';
+                            // popup.style.color = '#ff4e4e';
+                            // popup.style.fontWeight = 'bold';
+                            // popup.style.fontSize = '1.08rem';
+                            // popup.style.padding = '16px 32px';
+                            // popup.style.borderRadius = '10px';
+                            // popup.style.boxShadow = '0 2px 16px #0005';
+                            // popup.style.zIndex = '99999';
+                            // document.body.appendChild(popup);
+                            // setTimeout(()=>popup.remove(), 2500);
                         }
                     }
                 } catch (err) {
                     if (window.showPopupMessage) {
                         showPopupMessage('Network error', 'error');
                     } else {
-                        alert('Network error');
+                        // Fallback: create a modern styled popup
+                        const popup = document.createElement('div');
+                        popup.textContent = 'Network error';
+                        popup.style.position = 'fixed';
+                        popup.style.top = '32px';
+                        popup.style.left = '50%';
+                        popup.style.transform = 'translateX(-50%)';
+                        popup.style.background = '#23262e';
+                        popup.style.color = '#ff4e4e';
+                        popup.style.fontWeight = 'bold';
+                        popup.style.fontSize = '1.08rem';
+                        popup.style.padding = '16px 32px';
+                        popup.style.borderRadius = '10px';
+                        popup.style.boxShadow = '0 2px 16px #0005';
+                        popup.style.zIndex = '99999';
+                        document.body.appendChild(popup);
+                        setTimeout(()=>popup.remove(), 2500);
                     }
                 }
             });
