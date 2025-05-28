@@ -1,5 +1,5 @@
 // cart.js: Handles cart page logic, dynamic cart rendering, and badge update
-const BASE_URL = 'http://127.0.0.1:5000';
+const BASE_URL = 'https://a7medbx.pythonanywhere.com/';
 
 function getToken() {
     let token = localStorage.getItem('jwt_token');

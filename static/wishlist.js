@@ -1,5 +1,5 @@
 // Base URL for your API
-const BASE_URL = 'http://127.0.0.1:5000'; // Make sure this is correct
+const BASE_URL = 'https://a7medbx.pythonanywhere.com'; // Make sure this is correct
 
 // Modern popup message fallback (your code - looks good)
 if (typeof window.showPopupMessage !== 'function') {

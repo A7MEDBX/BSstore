@@ -1,5 +1,5 @@
 // verifingotp.js - Handles OTP verification for classic registration flow
-const BASE_URL = 'http://127.0.0.1:5000';
+const BASE_URL = 'https://a7medbx.pythonanywhere.com';
 
 document.addEventListener('DOMContentLoaded', function() {
     const otpInputs = Array.from(document.querySelectorAll('.otp-input'));

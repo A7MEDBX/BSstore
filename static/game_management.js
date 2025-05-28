@@ -12,7 +12,7 @@ function getJwtToken() {
  */
 async function fetchGames() {
     try {
-        const response = await fetch('http://127.0.0.1:5000/api/allgames');
+        const response = await fetch('https://a7medbx.pythonanywhere.com/api/allgames');
         if (!response.ok) throw new Error("Failed to fetch games.");
         const games = await response.json();
         renderGamesGrid(games);
@@ -75,7 +75,7 @@ function renderGamesGrid(games) {
             e.stopPropagation();
             showDeleteConfirmationPopup(async () => {
                 try {
-                    const res = await fetch(`http://127.0.0.1:5000/api/games/${game.id}`, { 
+                    const res = await fetch(`https://a7medbx.pythonanywhere.com/api/games/${game.id}`, { 
                         method: 'DELETE',
                         headers: { 'Authorization': 'Bearer ' + getJwtToken() }
                     });
@@ -183,7 +183,7 @@ if (editGameForm) {
         };
         const token = getJwtToken();
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
+            const response = await fetch(`https://a7medbx.pythonanywhere.com/api/games/${gameId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify(data)
@@ -216,7 +216,7 @@ if (editGameForm) {
 
 // When opening modal, show image preview
 function fetchGameDetails(gameId) {
-    fetch(`http://127.0.0.1:5000/api/allgames/${gameId}`)
+    fetch(`https://a7medbx.pythonanywhere.com/api/allgames/${gameId}`)
         .then(res => res.json())
         .then(game => {
             document.getElementById("title").value = game.title || "";
@@ -579,7 +579,7 @@ addGameForm.addEventListener('submit', async function(event) {
     };
     const token = getJwtToken();
     try {
-        const response = await fetch('http://127.0.0.1:5000/api/games', {
+        const response = await fetch('https://a7medbx.pythonanywhere.com/api/games', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
             body: JSON.stringify(formData)

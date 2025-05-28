@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalText = addToCartBtn.textContent;
         addToCartBtn.textContent = 'Adding...';
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/cart', {
+            const response = await fetch('https://a7medbx.pythonanywhere.com/api/cart', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 // Fetch game details for this game
                 try {
-                    const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`);
+                    const response = await fetch(`https://a7medbx.pythonanywhere.com/api/games/${gameId}`);
                     if (!response.ok) throw new Error('Failed to fetch game details');
                     const game = await response.json();
                     // Compose a cart-like item for this game only
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             placeOrderBtn.textContent = 'Processing...';
                             let userId = null;
                             try {
-                                const res = await fetch('http://127.0.0.1:5000/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+                                const res = await fetch('https://a7medbx.pythonanywhere.com/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
                                 if (res.ok) {
                                     const user = await res.json();
                                     userId = user.id;
@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             let allSuccess = true;
                             for (const item of cartItems) {
-                                const resp = await fetch('http://127.0.0.1:5000/api/userlibrary', {
+                                const resp = await fetch('https://a7medbx.pythonanywhere.com/api/userlibrary', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                                     body: JSON.stringify({ user_id: userId, game_id: item.game_id })
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (!resp.ok) allSuccess = false;
                             }
                             for (const item of cartItems) {
-                                await fetch(`http://127.0.0.1:5000/api/cart/${item.game_id}`, {
+                                await fetch(`https://a7medbx.pythonanywhere.com/api/cart/${item.game_id}`, {
                                     method: 'DELETE',
                                     headers: { 'Authorization': 'Bearer ' + token }
                                 });

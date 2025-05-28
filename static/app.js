@@ -14,7 +14,7 @@ if (toggleBtn && pwd && eyeIcon) {
     });
 }
 
-const BASE_URL = 'http://127.0.0.1:5000';
+const BASE_URL = 'https://a7medbx.pythonanywhere.com/';
 
 // Login form submission for login.html
 const loginForm = document.getElementById('loginForm');
@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Display unapproved games in Legendary adventures await section
     function displayUnapprovedAdventures() {
-        fetch('http://127.0.0.1:5000/api/allgames')
+        fetch('https://a7medbx.pythonanywhere.com//api/allgames')
             .then(res => res.json())
             .then(games => {
                 const adventuresContainer = document.querySelector('.adventure-cards');
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Display free games in Play Free section
     function displayFreeGames() {
-        fetch('http://127.0.0.1:5000/api/allgames')
+        fetch('https://a7medbx.pythonanywhere.com//api/allgames')
             .then(res => res.json())
             .then(games => {
                 const freeContainer = document.querySelector('.playfree-cards');

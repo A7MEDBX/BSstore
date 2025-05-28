@@ -16,7 +16,7 @@ async function fetchGameDetails(gameId) {
             if (match) token = decodeURIComponent(match[1]);
         }
 
-        const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
+        const response = await fetch(`https://a7medbx.pythonanywhere.com//api/games/${gameId}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -100,7 +100,7 @@ document.getElementById("editGameForm").addEventListener("submit", async functio
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:5000/api/games/${gameId}`, {
+        const response = await fetch(`https://a7medbx.pythonanywhere.com//api/games/${gameId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

@@ -1,5 +1,5 @@
 // game.js: Fetch and display game details by ID from URL
-const BASE_URL = 'http://127.0.0.1:5000';
+const BASE_URL = 'https://a7medbx.pythonanywhere.com';
 
 function getQueryParam(name) {
     const url = new URL(window.location.href);
@@ -729,7 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             try {
-                const res = await fetch('http://127.0.0.1:5000/api/wishlist', {
+                const res = await fetch('https://a7medbx.pythonanywhere.com/api/wishlist', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
                     body: JSON.stringify({ game_id: gameId })

@@ -1,5 +1,5 @@
 // library.js - Loads and renders the user's library in library.html
-const BASE_URL = 'http://127.0.0.1:5000';
+const BASE_URL = 'https://a7medbx.pythonanywhere.com';
 
 function getCookie(name) {
     const value = `; ${document.cookie}`;
